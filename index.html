@@ -51,6 +51,9 @@
                     <button class="nav-btn active" data-view="viviendas">Viviendas</button>
                     <button class="nav-btn" data-view="benchmarks">Benchmarks</button>
                     <button class="nav-btn" data-view="criterios">Criterios</button>
+                    <button class="nav-btn nav-btn-icon" id="btn-config" data-view="config" title="Configuración GitHub">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
                 </nav>
             </div>
         </header>
@@ -64,8 +67,13 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Pegar URLs nuevas
                     </button>
+                    <button id="btn-import" class="btn-primary btn-primary-alt">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Importar análisis
+                    </button>
                 </div>
                 <div class="actions-right">
+                    <span id="github-status" class="github-status" title="Estado de la conexión con GitHub"></span>
                     <button id="btn-export" class="btn-ghost" title="Descargar JSON con todas las viviendas (incluye las añadidas localmente)">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         Exportar
@@ -75,6 +83,30 @@
                         Reset local
                     </button>
                 </div>
+            </section>
+
+            <!-- PANEL DE IMPORTAR ANÁLISIS -->
+            <section id="import-panel" class="inbox-panel hidden">
+                <div class="inbox-head">
+                    <div>
+                        <h3>Importar análisis</h3>
+                        <p>Pega aquí el JSON que te ha dado Claude. El dashboard hará el commit a GitHub por ti.</p>
+                    </div>
+                    <button id="btn-import-close" class="btn-icon" aria-label="Cerrar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <textarea id="import-textarea" placeholder='[&#10;  {&#10;    "id": "123456",&#10;    "url": "https://www.idealista.com/inmueble/123456/",&#10;    "datos": { "precio": 100000, ... },&#10;    ...&#10;  }&#10;]'></textarea>
+                <div class="inbox-actions">
+                    <span id="import-status" class="inbox-status"></span>
+                    <button id="btn-import-commit" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        Importar y subir a GitHub
+                    </button>
+                </div>
+                <p class="inbox-help">
+                    Espera a recibir un mensaje verde de confirmación. Vercel redespliega solo en ~30 segundos.
+                </p>
             </section>
 
             <!-- INBOX URLs (oculto por defecto) -->
@@ -258,6 +290,74 @@
             <section class="bench-card">
                 <h3 class="bench-card-title">Parámetros de cálculo</h3>
                 <div id="criterios-params" class="params-grid"></div>
+            </section>
+        </main>
+
+        <!-- VISTA CONFIGURACIÓN -->
+        <main id="view-config" class="view">
+            <div class="view-header">
+                <h2 class="view-title">Configuración</h2>
+                <p class="view-sub">Conexión con GitHub para subir análisis automáticamente</p>
+            </div>
+
+            <section class="bench-card">
+                <h3 class="bench-card-title">Conexión con GitHub</h3>
+                <p class="bench-card-sub">El token se guarda solo en tu navegador (localStorage). Nunca se envía a ningún servidor excepto a la API oficial de GitHub.</p>
+
+                <div class="config-form">
+                    <label class="config-label">
+                        <span>Owner (tu usuario de GitHub)</span>
+                        <input type="text" id="config-owner" placeholder="ej: borjaperezh" autocomplete="off">
+                    </label>
+                    <label class="config-label">
+                        <span>Repositorio</span>
+                        <input type="text" id="config-repo" placeholder="ej: analisis-rentabilidad-inmobiliaria" autocomplete="off">
+                    </label>
+                    <label class="config-label">
+                        <span>Rama (branch)</span>
+                        <input type="text" id="config-branch" placeholder="main" value="main" autocomplete="off">
+                    </label>
+                    <label class="config-label">
+                        <span>Personal Access Token (Fine-grained)</span>
+                        <div class="config-input-with-toggle">
+                            <input type="password" id="config-token" placeholder="github_pat_..." autocomplete="off">
+                            <button type="button" id="btn-toggle-token" class="btn-icon" aria-label="Mostrar/ocultar token">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                    </label>
+
+                    <div class="config-actions">
+                        <button id="btn-config-test" class="btn-ghost">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            Probar conexión
+                        </button>
+                        <button id="btn-config-save" class="btn-primary">Guardar configuración</button>
+                    </div>
+
+                    <div id="config-test-result" class="config-test-result"></div>
+                </div>
+            </section>
+
+            <section class="bench-card">
+                <h3 class="bench-card-title">Cómo generar el token</h3>
+                <ol class="config-steps">
+                    <li>Ve a <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com/settings/tokens (Fine-grained)</a></li>
+                    <li>Click en <strong>Generate new token</strong></li>
+                    <li>Token name: lo que quieras (ej: <code>dashboard-inmobiliario</code>)</li>
+                    <li>Expiration: máximo (1 año)</li>
+                    <li>Repository access: <strong>Only select repositories</strong> → tu repo concreto</li>
+                    <li>Permissions → Repository permissions → <strong>Contents</strong>: <strong>Read and write</strong></li>
+                    <li>Generate token → cópialo y pégalo arriba (no lo verás dos veces)</li>
+                </ol>
+            </section>
+
+            <section class="bench-card">
+                <h3 class="bench-card-title">Acciones</h3>
+                <div class="config-danger">
+                    <button id="btn-config-clear" class="btn-ghost-danger">Borrar configuración</button>
+                    <p>Elimina el token y la configuración de este navegador. Tendrás que volver a configurarlo.</p>
+                </div>
             </section>
         </main>
 

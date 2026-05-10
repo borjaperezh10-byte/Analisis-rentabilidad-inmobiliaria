@@ -207,6 +207,8 @@ function setupActions() {
     // Mostrar/ocultar panel de pegar URLs
     const inbox = document.getElementById('inbox-panel');
     document.getElementById('btn-add-urls').addEventListener('click', () => {
+        // Cerrar el otro panel si está abierto
+        document.getElementById('import-panel').classList.add('hidden');
         inbox.classList.toggle('hidden');
         if (!inbox.classList.contains('hidden')) {
             document.getElementById('inbox-textarea').focus();
@@ -246,6 +248,11 @@ function setupActions() {
         renderAll();
         toast('Cambios locales eliminados', 'success');
     });
+
+    // Configuración GitHub e importar
+    setupConfigView();
+    setupImportPanel();
+    updateGitHubStatusIndicator();
 }
 
 // Extrae IDs únicos de Idealista de un texto pegado
@@ -804,6 +811,335 @@ function renderCriterios() {
             <div class="criterio-value">${fmt.pctNoSign(params.estimacion.inflacion)}</div>
         </div>
     `;
+}
+
+// =========================================================================
+// INTEGRACIÓN GITHUB API
+// =========================================================================
+const GH_CONFIG_KEY = 'inv_inmobil_gh_config_v1';
+
+const ghConfig = {
+    get: () => {
+        try {
+            const raw = localStorage.getItem(GH_CONFIG_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    },
+    set: (cfg) => localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(cfg)),
+    clear: () => localStorage.removeItem(GH_CONFIG_KEY),
+    isConfigured: () => {
+        const c = ghConfig.get();
+        return !!(c && c.owner && c.repo && c.token);
+    },
+};
+
+// API de GitHub: leer un fichero
+async function ghReadFile(path) {
+    const cfg = ghConfig.get();
+    if (!cfg) throw new Error('GitHub no está configurado');
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}?ref=${cfg.branch || 'main'}`;
+    const res = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${cfg.token}`,
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+        },
+    });
+    if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`GitHub ${res.status}: ${txt}`);
+    }
+    const json = await res.json();
+    // El contenido viene en base64
+    const content = decodeURIComponent(escape(atob(json.content.replace(/\n/g, ''))));
+    return { sha: json.sha, content, parsed: JSON.parse(content) };
+}
+
+// API de GitHub: escribir un fichero
+async function ghWriteFile(path, content, sha, message) {
+    const cfg = ghConfig.get();
+    if (!cfg) throw new Error('GitHub no está configurado');
+    const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`;
+    const body = {
+        message: message || 'Update from dashboard',
+        content: btoa(unescape(encodeURIComponent(content))),
+        sha: sha,
+        branch: cfg.branch || 'main',
+    };
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${cfg.token}`,
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`GitHub ${res.status}: ${txt}`);
+    }
+    return res.json();
+}
+
+// Test: comprueba que el token tiene acceso al repo y puede leer data.json
+async function ghTest() {
+    const cfg = ghConfig.get();
+    if (!cfg) throw new Error('Configura primero el token y el repo');
+    const file = await ghReadFile('data.json');
+    if (!file.parsed.viviendas) throw new Error('data.json no tiene la estructura esperada (falta "viviendas")');
+    return {
+        ok: true,
+        viviendas: file.parsed.viviendas.length,
+        sha: file.sha.slice(0, 7),
+    };
+}
+
+function updateGitHubStatusIndicator() {
+    const el = document.getElementById('github-status');
+    if (!el) return;
+    if (ghConfig.isConfigured()) {
+        el.className = 'github-status connected';
+        el.textContent = 'GitHub conectado';
+        el.title = 'Click para ver/cambiar configuración';
+        el.style.cursor = 'pointer';
+        el.onclick = () => switchView('config');
+    } else {
+        el.className = 'github-status';
+        el.textContent = 'Sin GitHub';
+        el.title = 'Configura el token para subir cambios automáticamente';
+        el.style.cursor = 'pointer';
+        el.onclick = () => switchView('config');
+    }
+}
+
+// =========================================================================
+// VISTA CONFIGURACIÓN
+// =========================================================================
+function setupConfigView() {
+    const ownerInput = document.getElementById('config-owner');
+    const repoInput = document.getElementById('config-repo');
+    const branchInput = document.getElementById('config-branch');
+    const tokenInput = document.getElementById('config-token');
+    const testBtn = document.getElementById('btn-config-test');
+    const saveBtn = document.getElementById('btn-config-save');
+    const clearBtn = document.getElementById('btn-config-clear');
+    const toggleBtn = document.getElementById('btn-toggle-token');
+    const resultEl = document.getElementById('config-test-result');
+
+    // Cargar configuración guardada
+    const cfg = ghConfig.get();
+    if (cfg) {
+        ownerInput.value = cfg.owner || '';
+        repoInput.value = cfg.repo || '';
+        branchInput.value = cfg.branch || 'main';
+        tokenInput.value = cfg.token || '';
+    }
+
+    // Toggle visibilidad del token
+    toggleBtn.addEventListener('click', () => {
+        tokenInput.type = tokenInput.type === 'password' ? 'text' : 'password';
+    });
+
+    // Guardar
+    saveBtn.addEventListener('click', () => {
+        const cfg = {
+            owner: ownerInput.value.trim(),
+            repo: repoInput.value.trim(),
+            branch: branchInput.value.trim() || 'main',
+            token: tokenInput.value.trim(),
+        };
+        if (!cfg.owner || !cfg.repo || !cfg.token) {
+            resultEl.className = 'config-test-result error';
+            resultEl.textContent = 'Faltan campos obligatorios (owner, repo, token).';
+            return;
+        }
+        ghConfig.set(cfg);
+        resultEl.className = 'config-test-result success';
+        resultEl.textContent = '✓ Configuración guardada en este navegador.';
+        updateGitHubStatusIndicator();
+        toast('Configuración guardada', 'success');
+    });
+
+    // Probar conexión
+    testBtn.addEventListener('click', async () => {
+        const cfg = {
+            owner: ownerInput.value.trim(),
+            repo: repoInput.value.trim(),
+            branch: branchInput.value.trim() || 'main',
+            token: tokenInput.value.trim(),
+        };
+        if (!cfg.owner || !cfg.repo || !cfg.token) {
+            resultEl.className = 'config-test-result error';
+            resultEl.textContent = 'Rellena los tres campos obligatorios primero.';
+            return;
+        }
+        // Guardamos temporalmente para que ghTest los use
+        ghConfig.set(cfg);
+        testBtn.classList.add('btn-loading');
+        try {
+            const result = await ghTest();
+            resultEl.className = 'config-test-result success';
+            resultEl.innerHTML = `✓ Conexión OK · data.json encontrado con ${result.viviendas} vivienda${result.viviendas !== 1 ? 's' : ''} (sha ${result.sha}).<br>Ya puedes guardar la configuración.`;
+            updateGitHubStatusIndicator();
+        } catch (err) {
+            resultEl.className = 'config-test-result error';
+            let msg = err.message;
+            if (msg.includes('401')) msg = 'Token inválido o sin permisos. Revisa que el token tenga "Contents: Read and write" sobre este repo.';
+            else if (msg.includes('404')) msg = 'Repo no encontrado o data.json no existe en esa rama. Revisa owner/repo/branch.';
+            else if (msg.includes('Failed to fetch')) msg = 'No se pudo conectar (posible problema de red o CORS).';
+            resultEl.innerHTML = `✗ ${msg}`;
+        } finally {
+            testBtn.classList.remove('btn-loading');
+        }
+    });
+
+    // Borrar configuración
+    clearBtn.addEventListener('click', () => {
+        if (!confirm('¿Eliminar la configuración de GitHub de este navegador?')) return;
+        ghConfig.clear();
+        ownerInput.value = '';
+        repoInput.value = '';
+        branchInput.value = 'main';
+        tokenInput.value = '';
+        resultEl.className = 'config-test-result';
+        resultEl.textContent = '';
+        updateGitHubStatusIndicator();
+        toast('Configuración borrada', 'success');
+    });
+}
+
+// =========================================================================
+// IMPORTAR ANÁLISIS (pegar JSON, hacer push a GitHub)
+// =========================================================================
+function setupImportPanel() {
+    const panel = document.getElementById('import-panel');
+    const textarea = document.getElementById('import-textarea');
+    const status = document.getElementById('import-status');
+    const btnImport = document.getElementById('btn-import');
+    const btnClose = document.getElementById('btn-import-close');
+    const btnCommit = document.getElementById('btn-import-commit');
+
+    btnImport.addEventListener('click', () => {
+        // Cerrar el panel de URLs si está abierto
+        document.getElementById('inbox-panel').classList.add('hidden');
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+            textarea.focus();
+            status.textContent = '';
+            status.className = 'inbox-status';
+        }
+    });
+    btnClose.addEventListener('click', () => panel.classList.add('hidden'));
+
+    btnCommit.addEventListener('click', async () => {
+        if (!ghConfig.isConfigured()) {
+            status.className = 'inbox-status error';
+            status.textContent = 'Primero configura GitHub (icono engranaje arriba).';
+            return;
+        }
+
+        const text = textarea.value.trim();
+        if (!text) {
+            status.className = 'inbox-status error';
+            status.textContent = 'Pega el JSON que te ha dado Claude.';
+            return;
+        }
+
+        let parsed;
+        try {
+            parsed = JSON.parse(text);
+        } catch (err) {
+            status.className = 'inbox-status error';
+            status.textContent = `JSON inválido: ${err.message}`;
+            return;
+        }
+
+        // Aceptamos dos formas: array de viviendas, o objeto con campo "viviendas"
+        let nuevasViviendas;
+        if (Array.isArray(parsed)) {
+            nuevasViviendas = parsed;
+        } else if (parsed.viviendas && Array.isArray(parsed.viviendas)) {
+            nuevasViviendas = parsed.viviendas;
+        } else {
+            status.className = 'inbox-status error';
+            status.textContent = 'El JSON debe ser un array de viviendas o un objeto con campo "viviendas".';
+            return;
+        }
+
+        if (nuevasViviendas.length === 0) {
+            status.className = 'inbox-status error';
+            status.textContent = 'El JSON no contiene viviendas.';
+            return;
+        }
+
+        // Validar mínimamente: cada vivienda debe tener al menos id
+        const sinId = nuevasViviendas.filter(v => !v.id);
+        if (sinId.length > 0) {
+            status.className = 'inbox-status error';
+            status.textContent = `${sinId.length} vivienda${sinId.length > 1 ? 's' : ''} sin "id". El JSON parece incompleto.`;
+            return;
+        }
+
+        btnCommit.classList.add('btn-loading');
+        status.className = 'inbox-status';
+        status.textContent = 'Conectando con GitHub...';
+
+        try {
+            // Leer data.json actual
+            const file = await ghReadFile('data.json');
+            const existing = file.parsed;
+
+            // Fusionar: las nuevas reemplazan a las existentes con mismo id, las nuevas se añaden
+            const map = new Map(existing.viviendas.map(v => [v.id, v]));
+            let added = 0;
+            let updated = 0;
+            for (const v of nuevasViviendas) {
+                if (map.has(v.id)) {
+                    updated++;
+                } else {
+                    added++;
+                }
+                map.set(v.id, v);
+            }
+            existing.viviendas = [...map.values()];
+            existing.meta = existing.meta || {};
+            existing.meta.lastUpdated = new Date().toISOString().split('T')[0];
+
+            // Eliminar de pendientes los IDs que acaban de entrar
+            const idsImportados = new Set(nuevasViviendas.map(v => v.id));
+            const pendientesActuales = localData.getPendientes();
+            const pendientesNuevos = pendientesActuales.filter(url => {
+                const m = url.match(/inmueble\/(\d+)/);
+                return !m || !idsImportados.has(m[1]);
+            });
+            localData.setPendientes(pendientesNuevos);
+
+            status.textContent = 'Subiendo cambios al repo...';
+
+            // Escribir
+            const message = `Dashboard: ${added > 0 ? `+${added} nueva${added > 1 ? 's' : ''}` : ''}${added > 0 && updated > 0 ? ', ' : ''}${updated > 0 ? `${updated} actualizada${updated > 1 ? 's' : ''}` : ''}`;
+            await ghWriteFile('data.json', JSON.stringify(existing, null, 2), file.sha, message);
+
+            const summary = `${added > 0 ? `${added} añadida${added > 1 ? 's' : ''}` : ''}${added > 0 && updated > 0 ? ', ' : ''}${updated > 0 ? `${updated} actualizada${updated > 1 ? 's' : ''}` : ''}`;
+            status.className = 'inbox-status success';
+            status.textContent = `✓ ${summary}. Vercel redespliega en ~30s. Refresca esta página después.`;
+            textarea.value = '';
+            renderPendientes();
+            toast(`Subido a GitHub: ${summary}`, 'success');
+        } catch (err) {
+            console.error(err);
+            status.className = 'inbox-status error';
+            let msg = err.message;
+            if (msg.includes('401')) msg = 'Token inválido o caducado. Revisa la configuración.';
+            else if (msg.includes('404')) msg = 'data.json no encontrado en el repo. Revisa la configuración.';
+            else if (msg.includes('409')) msg = 'Conflicto: el data.json ha cambiado. Refresca y vuelve a intentar.';
+            status.textContent = `✗ ${msg}`;
+        } finally {
+            btnCommit.classList.remove('btn-loading');
+        }
+    });
 }
 
 // =========================================================================
