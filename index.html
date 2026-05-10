@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>Inversiones · Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-box">
+            <div class="login-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M3 12 L12 3 L21 12 M5 10 V21 H19 V10"/>
+                    <line x1="9" y1="14" x2="15" y2="14"/>
+                </svg>
+            </div>
+            <h1 class="login-title">Análisis Inmobiliario</h1>
+            <p class="login-sub">Acceso restringido</p>
+            <form id="login-form" class="login-form">
+                <input type="password" id="login-input" placeholder="contraseña" autocomplete="current-password" autofocus>
+                <button type="submit">Entrar</button>
+            </form>
+            <p id="login-error" class="login-error"></p>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app" class="app hidden">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-inner">
+                <div class="header-brand">
+                    <div class="brand-mark">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M3 12 L12 3 L21 12 M5 10 V21 H19 V10"/>
+                            <line x1="9" y1="14" x2="15" y2="14"/>
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Análisis Inmobiliario</h1>
+                        <p id="header-meta">Talavera de la Reina · <span id="lastUpdated"></span></p>
+                    </div>
+                </div>
+                <nav class="header-nav">
+                    <button class="nav-btn active" data-view="viviendas">Viviendas</button>
+                    <button class="nav-btn" data-view="benchmarks">Benchmarks</button>
+                    <button class="nav-btn" data-view="criterios">Criterios</button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- VISTA VIVIENDAS -->
+        <main id="view-viviendas" class="view active">
+            <!-- ACCIONES SUPERIORES -->
+            <section class="actions-bar">
+                <div class="actions-left">
+                    <button id="btn-add-urls" class="btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Pegar URLs nuevas
+                    </button>
+                </div>
+                <div class="actions-right">
+                    <button id="btn-export" class="btn-ghost" title="Descargar JSON con todas las viviendas (incluye las añadidas localmente)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Exportar
+                    </button>
+                    <button id="btn-reset-local" class="btn-ghost" title="Limpiar cambios locales y recargar desde data.json">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        Reset local
+                    </button>
+                </div>
+            </section>
+
+            <!-- INBOX URLs (oculto por defecto) -->
+            <section id="inbox-panel" class="inbox-panel hidden">
+                <div class="inbox-head">
+                    <div>
+                        <h3>Pegar URLs de Idealista</h3>
+                        <p>Una por línea. Se admiten URLs largas con tracking — yo las limpio.</p>
+                    </div>
+                    <button id="btn-inbox-close" class="btn-icon" aria-label="Cerrar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <textarea id="inbox-textarea" placeholder="https://www.idealista.com/inmueble/108786380/&#10;https://www.idealista.com/inmueble/110328278/?utm_medium=email&amp;..."></textarea>
+                <div class="inbox-actions">
+                    <span id="inbox-status" class="inbox-status"></span>
+                    <button id="btn-inbox-add" class="btn-primary">Añadir como pendientes</button>
+                </div>
+                <p class="inbox-help">Las URLs se guardan localmente como "pendientes" hasta que Claude las analice y actualice <code>data.json</code> en el repo.</p>
+            </section>
+
+            <!-- KPIs SUPERIORES -->
+            <section class="kpi-strip">
+                <div class="kpi">
+                    <span class="kpi-label">Analizadas</span>
+                    <span class="kpi-value" id="kpi-total">0</span>
+                </div>
+                <div class="kpi">
+                    <span class="kpi-label">Pasan filtro</span>
+                    <span class="kpi-value kpi-pass" id="kpi-pass">0</span>
+                </div>
+                <div class="kpi">
+                    <span class="kpi-label">Zona gris</span>
+                    <span class="kpi-value kpi-warn" id="kpi-warn">0</span>
+                </div>
+                <div class="kpi">
+                    <span class="kpi-label">Descartadas</span>
+                    <span class="kpi-value kpi-fail" id="kpi-fail">0</span>
+                </div>
+                <div class="kpi kpi-wide">
+                    <span class="kpi-label">Inversión total potencial</span>
+                    <span class="kpi-value" id="kpi-inversion">—</span>
+                </div>
+            </section>
+
+            <!-- FILTROS -->
+            <section class="filters">
+                <div class="filter-group">
+                    <span class="filter-label">Estado</span>
+                    <div class="filter-chips">
+                        <button class="chip active" data-filter="all">Todas</button>
+                        <button class="chip" data-filter="pass">✓ Pasan</button>
+                        <button class="chip" data-filter="warning">~ Zona gris</button>
+                        <button class="chip" data-filter="fail">✗ Descartadas</button>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Ordenar por</span>
+                    <select id="sort-select" class="sort-select">
+                        <option value="cashflow">Cashflow anual</option>
+                        <option value="rentabilidadBruta">Rentabilidad bruta</option>
+                        <option value="margenSeguridad">Margen de seguridad</option>
+                        <option value="precio">Precio</option>
+                        <option value="em2">€/m²</option>
+                        <option value="multiplo">Múltiplo compra/alquiler</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- GRID DE TARJETAS -->
+            <section id="grid-viviendas" class="grid-viviendas">
+                <!-- inyección dinámica -->
+            </section>
+
+            <!-- PENDIENTES DE ANÁLISIS (URLs locales) -->
+            <section id="pendientes-section" class="pendientes-section hidden">
+                <div class="pendientes-head">
+                    <h3>Pendientes de analizar <span id="pendientes-count" class="badge"></span></h3>
+                    <p>Pasa esta lista a Claude para que las analice y actualice <code>data.json</code></p>
+                </div>
+                <div id="pendientes-list" class="pendientes-list"></div>
+                <div class="pendientes-actions">
+                    <button id="btn-copy-pendientes" class="btn-ghost">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copiar lista
+                    </button>
+                    <button id="btn-clear-pendientes" class="btn-ghost-danger">Limpiar pendientes</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- VISTA BENCHMARKS -->
+        <main id="view-benchmarks" class="view">
+            <div class="view-header">
+                <h2 class="view-title">Benchmarks · Talavera de la Reina</h2>
+                <p class="view-sub">Datos de referencia del mercado, mayo 2026</p>
+            </div>
+
+            <!-- Comparativa de fuentes -->
+            <section class="bench-card">
+                <h3 class="bench-card-title">Comparativa de fuentes</h3>
+                <p class="bench-card-sub">La verdad del mercado está entre las dos</p>
+                <div class="source-grid">
+                    <div class="source-box source-ra">
+                        <span class="source-tag">RealAdvisor</span>
+                        <p class="source-desc">Transacciones reales, conservador</p>
+                        <div class="source-metrics">
+                            <div><span>€/m² piso</span><strong id="ra-em2">—</strong></div>
+                            <div><span>Precio mediano</span><strong id="ra-precio">—</strong></div>
+                            <div><span>Alquiler mediano</span><strong id="ra-alq">—</strong></div>
+                        </div>
+                    </div>
+                    <div class="source-box source-byf">
+                        <span class="source-tag">BestYieldFinder</span>
+                        <p class="source-desc">Anuncios publicados, optimista</p>
+                        <div class="source-metrics">
+                            <div><span>€/m² piso</span><strong id="byf-em2">—</strong></div>
+                            <div><span>Precio mediano</span><strong id="byf-precio">—</strong></div>
+                            <div><span>Alquiler mediano</span><strong id="byf-alq">—</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sweet spot por tamaño -->
+            <section class="bench-card">
+                <h3 class="bench-card-title">Rentabilidad bruta por tamaño</h3>
+                <p class="bench-card-sub">Fuente: BestYieldFinder · sweet spot resaltado</p>
+                <div id="bench-tamano" class="size-bars"></div>
+            </section>
+
+            <!-- Calles en precio -->
+            <section class="bench-card">
+                <h3 class="bench-card-title">Calles "en precio" · €/m² ≤ 1.100</h3>
+                <p class="bench-card-sub">Filtra tu búsqueda por estas calles para aumentar probabilidad de éxito</p>
+                <div id="bench-calles" class="calles-grid"></div>
+            </section>
+
+            <!-- Catalizadores -->
+            <section class="bench-card">
+                <h3 class="bench-card-title">Catalizadores de demanda</h3>
+                <p class="bench-card-sub">Factores estructurales que mueven el mercado</p>
+                <div id="bench-catalizadores" class="catalizadores-grid"></div>
+            </section>
+
+            <!-- Scoring -->
+            <section class="bench-card">
+                <h3 class="bench-card-title">Puntuación del mercado</h3>
+                <p class="bench-card-sub">Fuente: BestYieldFinder · escala 0-100</p>
+                <div id="bench-scoring" class="scoring-grid"></div>
+            </section>
+        </main>
+
+        <!-- VISTA CRITERIOS -->
+        <main id="view-criterios" class="view">
+            <div class="view-header">
+                <h2 class="view-title">Criterios de inversión</h2>
+                <p class="view-sub">Filosofía Inversor Directivo + criterios específicos para Talavera</p>
+            </div>
+
+            <section class="bench-card">
+                <h3 class="bench-card-title">Filtros duros · Talavera</h3>
+                <div id="criterios-talavera" class="criterios-list"></div>
+            </section>
+
+            <section class="bench-card">
+                <h3 class="bench-card-title">Filosofía Inversor Directivo</h3>
+                <ul class="filosofia-list">
+                    <li><strong>Margen de seguridad ≥25%</strong>: el alquiler puede caer un 25% y seguir generando cashflow positivo.</li>
+                    <li><strong>Zonas C en escala ABCD</strong>: mejor binomio rentabilidad/riesgo. Barrios obreros estables.</li>
+                    <li><strong>Pisos antiguos (>15 años)</strong>: las casas nuevas no rentan. Pero atención a derramas en >30 años.</li>
+                    <li><strong>Evitar plantas bajas</strong>: las preferidas de los okupas (probabilidad real 0,14% pero medida prudente).</li>
+                    <li><strong>Vacancia mín 8% · mantenimiento 10%</strong>: cálculos prudentes, no optimistas.</li>
+                    <li><strong>Rentabilidad bruta &gt;6%</strong>: por debajo, el cashflow es precario. Umbral de descarte rápido.</li>
+                    <li><strong>Reformas integrales</strong>: pagar máximo el 50% del valor post-reforma. Si no, no compensa el dolor de cabeza.</li>
+                    <li><strong>Probabilidad Nike</strong>: los chollos están al inicio (precio mal puesto) o tras meses sin moverse (vendedor cansado).</li>
+                    <li><strong>Preferir &lt;150k€</strong>: rango con mayor concentración de oportunidades.</li>
+                </ul>
+            </section>
+
+            <section class="bench-card">
+                <h3 class="bench-card-title">Parámetros de cálculo</h3>
+                <div id="criterios-params" class="params-grid"></div>
+            </section>
+        </main>
+
+        <!-- DETALLE VIVIENDA (modal) -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <div class="modal" role="dialog" aria-modal="true">
+                <button id="modal-close" class="modal-close" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Análisis personal · Datos no contrastados con fuentes oficiales · No constituye asesoramiento financiero</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
