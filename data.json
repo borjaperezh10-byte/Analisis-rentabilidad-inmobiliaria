@@ -1,22 +1,22 @@
 {
   "meta": {
     "version": "1.0",
-    "lastUpdated": "2026-05-09",
+    "lastUpdated": "2026-05-10",
     "user": "Borja P."
   },
   "parametros": {
     "hipoteca": {
-      "porcentajeFinanciado": 0.70,
+      "porcentajeFinanciado": 0.7,
       "tipoInteres": 0.03,
       "plazoAnos": 25
     },
     "fiscalidad": {
-      "irpfTramo": 0.30,
+      "irpfTramo": 0.3,
       "viviendaHabitualInquilino": true
     },
     "estimacion": {
       "vacancia": 0.08,
-      "mantenimiento": 0.10,
+      "mantenimiento": 0.1,
       "inflacion": 0.02
     }
   },
@@ -52,20 +52,66 @@
             "1hab": 0.0934,
             "2hab": 0.0725,
             "3hab": 0.0704,
-            "4hab": 0.0720
+            "4hab": 0.072
           },
           "rentabilidadPorTamano": [
-            {"rango": "40-50 m²", "rentabilidad": 0.0722, "em2": 2160},
-            {"rango": "50-60 m²", "rentabilidad": 0.0819, "em2": 1660},
-            {"rango": "60-70 m²", "rentabilidad": 0.0933, "em2": 1330, "destacado": true},
-            {"rango": "70-80 m²", "rentabilidad": 0.0711, "em2": 1600},
-            {"rango": "80-90 m²", "rentabilidad": 0.0796, "em2": 1380, "destacado": true},
-            {"rango": "90-100 m²", "rentabilidad": 0.0749, "em2": 1330},
-            {"rango": "100-110 m²", "rentabilidad": 0.0635, "em2": 1420},
-            {"rango": "110-120 m²", "rentabilidad": 0.0730, "em2": 1400},
-            {"rango": "120-130 m²", "rentabilidad": 0.0655, "em2": 1330},
-            {"rango": "130-140 m²", "rentabilidad": 0.0657, "em2": 1200},
-            {"rango": "140-150 m²", "rentabilidad": 0.0673, "em2": 1170}
+            {
+              "rango": "40-50 m²",
+              "rentabilidad": 0.0722,
+              "em2": 2160
+            },
+            {
+              "rango": "50-60 m²",
+              "rentabilidad": 0.0819,
+              "em2": 1660
+            },
+            {
+              "rango": "60-70 m²",
+              "rentabilidad": 0.0933,
+              "em2": 1330,
+              "destacado": true
+            },
+            {
+              "rango": "70-80 m²",
+              "rentabilidad": 0.0711,
+              "em2": 1600
+            },
+            {
+              "rango": "80-90 m²",
+              "rentabilidad": 0.0796,
+              "em2": 1380,
+              "destacado": true
+            },
+            {
+              "rango": "90-100 m²",
+              "rentabilidad": 0.0749,
+              "em2": 1330
+            },
+            {
+              "rango": "100-110 m²",
+              "rentabilidad": 0.0635,
+              "em2": 1420
+            },
+            {
+              "rango": "110-120 m²",
+              "rentabilidad": 0.073,
+              "em2": 1400
+            },
+            {
+              "rango": "120-130 m²",
+              "rentabilidad": 0.0655,
+              "em2": 1330
+            },
+            {
+              "rango": "130-140 m²",
+              "rentabilidad": 0.0657,
+              "em2": 1200
+            },
+            {
+              "rango": "140-150 m²",
+              "rentabilidad": 0.0673,
+              "em2": 1170
+            }
           ],
           "scoring": {
             "general": 80,
@@ -77,15 +123,42 @@
         }
       },
       "callesEnPrecio": [
-        {"calle": "Calle Ildefonso Fernández Sánchez", "em2": 950},
-        {"calle": "Calle de Bernardo González", "em2": 964},
-        {"calle": "Calle de San Juan Bautista de La Salle", "em2": 1058},
-        {"calle": "Calle de Morenito de Talavera", "em2": 1064},
-        {"calle": "Calle del Piélago", "em2": 1068},
-        {"calle": "Calle Fidel Martín Inés", "em2": 1081},
-        {"calle": "Calle del General Moscardó", "em2": 1084},
-        {"calle": "Calle de Isaac Gabaldón", "em2": 1094},
-        {"calle": "Calle de San Vicente", "em2": 1103}
+        {
+          "calle": "Calle Ildefonso Fernández Sánchez",
+          "em2": 950
+        },
+        {
+          "calle": "Calle de Bernardo González",
+          "em2": 964
+        },
+        {
+          "calle": "Calle de San Juan Bautista de La Salle",
+          "em2": 1058
+        },
+        {
+          "calle": "Calle de Morenito de Talavera",
+          "em2": 1064
+        },
+        {
+          "calle": "Calle del Piélago",
+          "em2": 1068
+        },
+        {
+          "calle": "Calle Fidel Martín Inés",
+          "em2": 1081
+        },
+        {
+          "calle": "Calle del General Moscardó",
+          "em2": 1084
+        },
+        {
+          "calle": "Calle de Isaac Gabaldón",
+          "em2": 1094
+        },
+        {
+          "calle": "Calle de San Vicente",
+          "em2": 1103
+        }
       ],
       "criterios": {
         "zonas": [
@@ -106,8 +179,18 @@
         "habitaciones": "2D grande o 3D"
       },
       "catalizadores": [
-        {"nombre": "Meta Data Center", "ubicacion": "Torrehierro Fase 2", "estado": "PSI aprobado oct-2024", "impacto": "Demanda alquiler ya visible"},
-        {"nombre": "AVE Madrid-Lisboa", "ubicacion": "Estación Talavera", "estado": "Trazado aprobado", "impacto": "Horizonte ~2030"}
+        {
+          "nombre": "Meta Data Center",
+          "ubicacion": "Torrehierro Fase 2",
+          "estado": "PSI aprobado oct-2024",
+          "impacto": "Demanda alquiler ya visible"
+        },
+        {
+          "nombre": "AVE Madrid-Lisboa",
+          "ubicacion": "Estación Talavera",
+          "estado": "Trazado aprobado",
+          "impacto": "Horizonte ~2030"
+        }
       ]
     }
   },
@@ -146,7 +229,7 @@
         "vcSuelo": 50625,
         "vcConstruccion": 16875,
         "vacancia": 0.08,
-        "mantenimiento": 0.10
+        "mantenimiento": 0.1
       },
       "calculo": {
         "costeTotal": 152994,
@@ -157,7 +240,7 @@
         "interesesAno1": 2799.75,
         "ingresosAnuales": 6360,
         "gastosAnuales": 2746,
-        "irpfAnual": -114.80,
+        "irpfAnual": -114.8,
         "beneficioNeto": 3728,
         "cashflowAnual": -1650,
         "rentabilidadBruta": 0.0416,
@@ -171,13 +254,15 @@
         "calidadInversion": "Mala",
         "minimoAlquiler": 668,
         "margenSeguridadMensual": -138,
-        "margenSeguridadPct": -0.260
+        "margenSeguridadPct": -0.26
       },
       "filtros": {
         "vsRA": -0.019,
         "vsBYF": -0.236,
         "verdict": "warning",
-        "verdictRazones": ["m² fuera de rango (130 vs 70-90)"],
+        "verdictRazones": [
+          "m² fuera de rango (130 vs 70-90)"
+        ],
         "verdictTexto": ">90 m² fuera del sweet spot"
       },
       "notas": "Único del lote con €/m² en mediana RA y bajo BYF. Problema: tamaño excesivo (130 m²) reduce rentabilidad porcentual. Buen producto, pero no sweet spot inversor."
@@ -216,7 +301,7 @@
         "vcSuelo": 44963,
         "vcConstruccion": 14988,
         "vacancia": 0.08,
-        "mantenimiento": 0.10
+        "mantenimiento": 0.1
       },
       "calculo": {
         "costeTotal": 135891,
@@ -233,7 +318,7 @@
         "rentabilidadBruta": 0.0446,
         "rentabilidadNeta": 0.0262,
         "rentabilidadFlujoCaja": -0.0233,
-        "rentabilidadPagoDeuda": 0.0440,
+        "rentabilidadPagoDeuda": 0.044,
         "rentabilidadInflacion": 0.0461,
         "rentabilidadTotal": 0.0668,
         "roce": -0.0233,
@@ -241,13 +326,16 @@
         "calidadInversion": "Regular",
         "minimoAlquiler": 606,
         "margenSeguridadMensual": -101,
-        "margenSeguridadPct": -0.200
+        "margenSeguridadPct": -0.2
       },
       "filtros": {
         "vsRA": 0.258,
-        "vsBYF": -0.020,
+        "vsBYF": -0.02,
         "verdict": "fail",
-        "verdictRazones": ["€/m²=1.332 alto vs RA", "sin calefacción (alerta)"],
+        "verdictRazones": [
+          "€/m²=1.332 alto vs RA",
+          "sin calefacción (alerta)"
+        ],
         "verdictTexto": "€/m² alto vs RA"
       },
       "notas": "Atención: el anuncio indica explícitamente \"No dispone de calefacción\". En Talavera (clima continental con inviernos fríos) esto puede ser un freno importante a la hora de alquilar. Si se compra, presupuestar instalación AC frío-calor."
@@ -286,7 +374,7 @@
         "vcSuelo": 60000,
         "vcConstruccion": 20000,
         "vacancia": 0.08,
-        "mantenimiento": 0.10
+        "mantenimiento": 0.1
       },
       "calculo": {
         "costeTotal": 181400,
@@ -303,7 +391,7 @@
         "rentabilidadBruta": 0.0337,
         "rentabilidadNeta": 0.0177,
         "rentabilidadFlujoCaja": -0.0456,
-        "rentabilidadPagoDeuda": 0.0440,
+        "rentabilidadPagoDeuda": 0.044,
         "rentabilidadInflacion": 0.0461,
         "rentabilidadTotal": 0.0445,
         "roce": -0.0456,
@@ -317,7 +405,11 @@
         "vsRA": 2.284,
         "vsBYF": 1.558,
         "verdict": "fail",
-        "verdictRazones": ["ático", "<70m²", "€/m²=3.478"],
+        "verdictRazones": [
+          "ático",
+          "<70m²",
+          "€/m²=3.478"
+        ],
         "verdictTexto": "Ático, <70m², €/m² disparado"
       },
       "notas": "€/m² muy elevado (3.478 €/m²) por el extra de garaje + dos terrazas. Bajada reciente del 2%. Inversión arriesgada por superficie pequeña: si el inquilino se va, 46m² compite con muchos pisos similares."
@@ -356,7 +448,7 @@
         "vcSuelo": 43088,
         "vcConstruccion": 14363,
         "vacancia": 0.08,
-        "mantenimiento": 0.10
+        "mantenimiento": 0.1
       },
       "calculo": {
         "costeTotal": 130265,
@@ -373,7 +465,7 @@
         "rentabilidadBruta": 0.0461,
         "rentabilidadNeta": 0.0269,
         "rentabilidadFlujoCaja": -0.0215,
-        "rentabilidadPagoDeuda": 0.0440,
+        "rentabilidadPagoDeuda": 0.044,
         "rentabilidadInflacion": 0.0461,
         "rentabilidadTotal": 0.0686,
         "roce": -0.0215,
@@ -387,7 +479,10 @@
         "vsRA": 0.447,
         "vsBYF": 0.126,
         "verdict": "fail",
-        "verdictRazones": ["año 1970 < 1980", "€/m²=1.532 alto"],
+        "verdictRazones": [
+          "año 1970 < 1980",
+          "€/m²=1.532 alto"
+        ],
         "verdictTexto": "Año 1970, €/m² alto"
       },
       "notas": "Bajada reciente del 4%. Edificio del año 1970 — atención a derramas extraordinarias futuras. La calefacción eléctrica es un coste alto para el inquilino."
@@ -425,8 +520,8 @@
         "ibi": 200,
         "vcSuelo": 29996,
         "vcConstruccion": 9999,
-        "vacancia": 0.10,
-        "mantenimiento": 0.10
+        "vacancia": 0.1,
+        "mantenimiento": 0.1
       },
       "calculo": {
         "costeTotal": 91788,
@@ -457,7 +552,11 @@
         "vsRA": null,
         "vsBYF": null,
         "verdict": "fail",
-        "verdictRazones": ["fuera de Talavera", "chalet (no piso)", "planta superior sin reformar"],
+        "verdictRazones": [
+          "fuera de Talavera",
+          "chalet (no piso)",
+          "planta superior sin reformar"
+        ],
         "verdictTexto": "Chalet fuera de Talavera"
       },
       "notas": "Inversión muy distinta al resto: pueblo rural (3.152 hab), 60 km de Madrid. Coste reforma 2ª planta no incluido (15-25k€ adicionales). Mercado alquiler residencial pequeño. Bajada del 11% indica venta lenta."
@@ -496,13 +595,13 @@
         "vcSuelo": 51375,
         "vcConstruccion": 17125,
         "vacancia": 0.08,
-        "mantenimiento": 0.10
+        "mantenimiento": 0.1
       },
       "calculo": {
         "costeTotal": 154857,
         "capitalPropio": 58957,
         "cuotaMensual": 454.78,
-        "cuotaAnual": 5457.40,
+        "cuotaAnual": 5457.4,
         "amortizacionAno1": 2615.99,
         "interesesAno1": 2841.41,
         "ingresosAnuales": 6300,
@@ -527,10 +626,87 @@
         "vsRA": 0.638,
         "vsBYF": 0.275,
         "verdict": "fail",
-        "verdictRazones": ["año 1974 < 1980", "€/m²=1.734 alto"],
+        "verdictRazones": [
+          "año 1974 < 1980",
+          "€/m²=1.734 alto"
+        ],
         "verdictTexto": "Año 1974, €/m² alto"
       },
       "notas": "Bajada reciente del 8%. Mejor perfil de alquiler del lote (reformado, gas natural, AC, ubicación céntrica). Inconveniente: solo 2 habitaciones, limita perfil de inquilino."
+    },
+    {
+      "id": "110691119",
+      "url": "https://www.idealista.com/inmueble/110691119/",
+      "fechaAnalisis": "2026-05-10",
+      "localidad": "Talavera de la Reina",
+      "zona": "El Pilar - La Estación",
+      "direccion": "Calle del Pilar",
+      "tipo": "Piso",
+      "titulo": "Piso en Calle del Pilar (4 hab)",
+      "datos": {
+        "precio": 129900,
+        "m2Construidos": 115,
+        "m2Utiles": 110,
+        "habitaciones": 4,
+        "banos": 2,
+        "planta": "2ª exterior con ascensor",
+        "ano": 1976,
+        "estado": "Buen estado",
+        "calefaccion": "Gas natural",
+        "aireAcondicionado": false,
+        "ascensor": true,
+        "terraza": true,
+        "garaje": false,
+        "comunidadMes": 60,
+        "bajadaPrecio": null,
+        "agencia": "Tecnocasa Estudio Ciudad de Talavera"
+      },
+      "estimaciones": {
+        "alquilerMensual": 600,
+        "alquilerNotas": "Estimación intermedia entre RA (508€ para 4hab) y BYF (990€). En zona céntrica con ascensor, gas natural y 4 hab, considero 600€/mes razonable a la baja.",
+        "ibi": 380,
+        "vcSuelo": 48713,
+        "vcConstruccion": 16238,
+        "vacancia": 0.08,
+        "mantenimiento": 0.1
+      },
+      "calculo": {
+        "costeTotal": 145191,
+        "capitalPropio": 54261,
+        "cuotaMensual": 431.2,
+        "cuotaAnual": 5174.4,
+        "amortizacionAno1": 2480.43,
+        "interesesAno1": 2693.98,
+        "ingresosAnuales": 7200,
+        "gastosAnuales": 2896,
+        "irpfAnual": 24.48,
+        "beneficioNeto": 4279.52,
+        "cashflowAnual": -894.89,
+        "rentabilidadBruta": 0.0496,
+        "rentabilidadNeta": 0.0295,
+        "rentabilidadFlujoCaja": -0.0165,
+        "rentabilidadPagoDeuda": 0.0457,
+        "rentabilidadInflacion": 0.0479,
+        "rentabilidadTotal": 0.0771,
+        "roce": -0.0165,
+        "multiplo": 242,
+        "calidadInversion": "Mala",
+        "minimoAlquiler": 675,
+        "margenSeguridadMensual": -75,
+        "margenSeguridadPct": -0.1243
+      },
+      "filtros": {
+        "vsRA": 0.0667,
+        "vsBYF": -0.1694,
+        "verdict": "fail",
+        "verdictRazones": [
+          ">90 m² (115)",
+          "año 1976 <1980",
+          "€/m²=1130 >1.100"
+        ],
+        "verdictTexto": ">90 m² (115), año 1976 <1980, €/m²=1130 >1.100"
+      },
+      "notas": "Piso de 4 habitaciones en zona céntrica con buen perfil aparente: 2ª planta con ascensor, gas natural, terraza, suelo de gres. Riesgos: (1) Año 1976 falla criterio del documento Talavera (<1980), atención a derramas extraordinarias y consumo energético elevado (101 kWh/m² año). (2) Tamaño 115 m² fuera del sweet spot (70-90). (3) €/m² 1.130 supera el 1.100 aceptable. Si negocias bajada a 119.000-122.000€ entrarías en €/m² ≤1.060 competitivo."
     }
   ]
 }
