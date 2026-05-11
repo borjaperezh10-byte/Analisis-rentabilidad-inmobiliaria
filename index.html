@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
     <meta name="theme-color" content="#0f172a">
-    <title>Inversiones · Dashboard</title>
+    <title>InmoMetrics by Borja Pérez</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
@@ -20,8 +20,8 @@
                     <line x1="9" y1="14" x2="15" y2="14"/>
                 </svg>
             </div>
-            <h1 class="login-title">Análisis Inmobiliario</h1>
-            <p class="login-sub">Acceso restringido</p>
+            <h1 class="login-title">InmoMetrics</h1>
+            <p class="login-sub">by Borja Pérez · Acceso restringido</p>
             <form id="login-form" class="login-form">
                 <input type="password" id="login-input" placeholder="contraseña" autocomplete="current-password" autofocus>
                 <button type="submit">Entrar</button>
@@ -43,12 +43,17 @@
                         </svg>
                     </div>
                     <div class="brand-text">
-                        <h1>Análisis Inmobiliario</h1>
-                        <p id="header-meta">Talavera de la Reina · <span id="lastUpdated"></span></p>
+                        <h1>InmoMetrics <span class="brand-by">by Borja Pérez</span></h1>
+                        <div class="brand-meta">
+                            <select id="city-selector" class="city-selector"></select>
+                            <span class="brand-meta-sep">·</span>
+                            <span id="lastUpdated"></span>
+                        </div>
                     </div>
                 </div>
                 <nav class="header-nav">
                     <button class="nav-btn active" data-view="viviendas">Viviendas</button>
+                    <button class="nav-btn" data-view="calculadora">Calculadora</button>
                     <button class="nav-btn" data-view="benchmarks">Benchmarks</button>
                     <button class="nav-btn" data-view="criterios">Criterios</button>
                     <button class="nav-btn nav-btn-icon" id="btn-config" data-view="config" title="Configuración GitHub">
@@ -146,10 +151,6 @@
                     <span class="kpi-label">Descartadas</span>
                     <span class="kpi-value kpi-fail" id="kpi-fail">0</span>
                 </div>
-                <div class="kpi kpi-wide">
-                    <span class="kpi-label">Inversión total potencial</span>
-                    <span class="kpi-value" id="kpi-inversion">—</span>
-                </div>
             </section>
 
             <!-- FILTROS -->
@@ -166,6 +167,7 @@
                 <div class="filter-group">
                     <span class="filter-label">Ordenar por</span>
                     <select id="sort-select" class="sort-select">
+                        <option value="fechaAnalisis">Fecha análisis (más recientes)</option>
                         <option value="cashflow">Cashflow anual</option>
                         <option value="rentabilidadBruta">Rentabilidad bruta</option>
                         <option value="margenSeguridad">Margen de seguridad</option>
@@ -198,7 +200,179 @@
             </section>
         </main>
 
-        <!-- VISTA BENCHMARKS -->
+        <!-- VISTA CALCULADORA -->
+        <main id="view-calculadora" class="view">
+            <div class="view-header">
+                <h2 class="view-title">Calculadora</h2>
+                <p class="view-sub">Analiza cualquier vivienda en tiempo real. Los resultados se actualizan al teclear.</p>
+            </div>
+
+            <div class="calc-layout">
+                <!-- COLUMNA IZQUIERDA: INPUTS -->
+                <div class="calc-col">
+                    <section class="calc-section">
+                        <h3 class="calc-section-title">Vivienda</h3>
+                        <div class="calc-grid">
+                            <label><span>Localidad</span><input type="text" id="c-localidad" placeholder="Ej: Talavera de la Reina"></label>
+                            <label><span>Zona / barrio</span><input type="text" id="c-zona" placeholder="Ej: El Pilar - La Estación"></label>
+                            <label><span>URL Idealista (opcional)</span><input type="text" id="c-url" placeholder="https://www.idealista.com/inmueble/..."></label>
+                            <label><span>Tipo</span>
+                                <select id="c-tipo">
+                                    <option value="Piso">Piso</option>
+                                    <option value="Ático">Ático</option>
+                                    <option value="Dúplex">Dúplex</option>
+                                    <option value="Estudio">Estudio</option>
+                                    <option value="Chalet">Chalet</option>
+                                    <option value="Casa">Casa</option>
+                                </select>
+                            </label>
+                            <label><span>Año construcción</span><input type="number" id="c-ano" placeholder="Ej: 1995" min="1800" max="2030"></label>
+                            <label><span>Habitaciones</span><input type="number" id="c-hab" min="0" max="10" value="3"></label>
+                            <label><span>Baños</span><input type="number" id="c-banos" min="0" max="10" value="1"></label>
+                            <label><span>Planta</span><input type="text" id="c-planta" placeholder="Ej: 3ª con ascensor"></label>
+                        </div>
+                    </section>
+
+                    <section class="calc-section">
+                        <h3 class="calc-section-title">Precio y dimensiones</h3>
+                        <div class="calc-grid">
+                            <label><span>Precio (€)</span><input type="number" id="c-precio" placeholder="Ej: 100000" min="0"></label>
+                            <label><span>m² construidos</span><input type="number" id="c-m2c" placeholder="Ej: 80" min="0"></label>
+                            <label><span>m² útiles (opcional)</span><input type="number" id="c-m2u" min="0"></label>
+                            <label><span>Comunidad (€/mes)</span><input type="number" id="c-comunidad" min="0" value="60"></label>
+                        </div>
+                    </section>
+
+                    <section class="calc-section">
+                        <h3 class="calc-section-title">Hipoteca</h3>
+                        <div class="calc-grid">
+                            <label><span>% Financiado</span><input type="number" id="c-fin" min="0" max="100" step="1" value="70">
+                                <span class="suffix">%</span>
+                            </label>
+                            <label><span>Tipo interés anual</span><input type="number" id="c-tipo-interes" min="0" max="100" step="0.01" value="3">
+                                <span class="suffix">%</span>
+                            </label>
+                            <label><span>Plazo (años)</span><input type="number" id="c-plazo" min="1" max="40" value="25"></label>
+                            <label><span>ITP / IVA</span><input type="number" id="c-itp" min="0" max="100" step="0.1" value="9">
+                                <span class="suffix">%</span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="calc-section">
+                        <h3 class="calc-section-title">Gastos compra</h3>
+                        <div class="calc-grid">
+                            <label><span>Notaría/registro (€)</span><input type="number" id="c-notaria" min="0" value="1200"></label>
+                            <label><span>Tasación (€)</span><input type="number" id="c-tasacion" min="0" value="400"></label>
+                            <label><span>Gestoría (€)</span><input type="number" id="c-gestoria" min="0" value="500"></label>
+                            <label><span>Retoques/pintura (€)</span><input type="number" id="c-retoques" min="0" value="1500"></label>
+                            <label><span>Comisión agencia (€)</span><input type="number" id="c-agencia" min="0" value="0"></label>
+                            <label><span>Otros (€)</span><input type="number" id="c-otros" min="0" value="0"></label>
+                        </div>
+                    </section>
+
+                    <section class="calc-section">
+                        <h3 class="calc-section-title">Alquiler y gastos anuales</h3>
+                        <div class="calc-grid">
+                            <label><span>Alquiler (€/mes)</span><input type="number" id="c-alquiler" min="0" placeholder="Ej: 600"></label>
+                            <label><span>IBI anual (€)</span><input type="number" id="c-ibi" min="0" value="350"></label>
+                            <label><span>Seguro hogar (€/año)</span><input type="number" id="c-seg-hogar" min="0" value="250"></label>
+                            <label><span>Seguro vida (€/año)</span><input type="number" id="c-seg-vida" min="0" value="250"></label>
+                            <label><span>Seguro impago (€/año)</span><input type="number" id="c-seg-impago" min="0" value="0"></label>
+                            <label><span>Vacancia</span><input type="number" id="c-vacancia" min="0" max="100" step="1" value="8">
+                                <span class="suffix">%</span>
+                            </label>
+                            <label><span>Mantenimiento</span><input type="number" id="c-mantenimiento" min="0" max="100" step="1" value="10">
+                                <span class="suffix">%</span>
+                            </label>
+                            <label><span>Inflación anual</span><input type="number" id="c-inflacion" min="0" max="100" step="0.1" value="2">
+                                <span class="suffix">%</span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="calc-section">
+                        <h3 class="calc-section-title">Fiscalidad (IRPF)</h3>
+                        <div class="calc-grid">
+                            <label><span>IRPF tramo</span><input type="number" id="c-irpf" min="0" max="100" step="1" value="30">
+                                <span class="suffix">%</span>
+                            </label>
+                            <label><span>Vivienda habitual del inquilino</span>
+                                <select id="c-vh">
+                                    <option value="si">Sí (reducción 60%)</option>
+                                    <option value="no">No</option>
+                                </select>
+                            </label>
+                            <label><span>Valor catastral suelo (€)</span><input type="number" id="c-vc-suelo" min="0" placeholder="Si lo desconoces, lo estimo al 37,5% del precio"></label>
+                            <label><span>Valor catastral construcción (€)</span><input type="number" id="c-vc-const" min="0" placeholder="Si lo desconoces, lo estimo al 12,5% del precio"></label>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- COLUMNA DERECHA: RESULTADOS -->
+                <div class="calc-col calc-col-results">
+                    <div class="calc-results-sticky">
+                        <div class="calc-verdict-banner" id="calc-verdict-banner">
+                            <span id="calc-verdict-icon">—</span>
+                            <span id="calc-verdict-label">Rellena los campos clave</span>
+                        </div>
+
+                        <div class="calc-result-block">
+                            <h4>Inversión</h4>
+                            <div class="calc-result-row"><span>Coste total</span><strong id="r-coste-total">—</strong></div>
+                            <div class="calc-result-row"><span>Capital propio</span><strong id="r-capital">—</strong></div>
+                            <div class="calc-result-row"><span>€/m²</span><strong id="r-em2">—</strong></div>
+                        </div>
+
+                        <div class="calc-result-block">
+                            <h4>Hipoteca</h4>
+                            <div class="calc-result-row"><span>Cuota mensual</span><strong id="r-cuota">—</strong></div>
+                            <div class="calc-result-row"><span>Amortización año 1</span><strong id="r-amort">—</strong></div>
+                            <div class="calc-result-row"><span>Intereses año 1</span><strong id="r-int">—</strong></div>
+                        </div>
+
+                        <div class="calc-result-block">
+                            <h4>Resultados anuales</h4>
+                            <div class="calc-result-row"><span>Ingresos</span><strong id="r-ingresos">—</strong></div>
+                            <div class="calc-result-row"><span>Gastos</span><strong id="r-gastos">—</strong></div>
+                            <div class="calc-result-row"><span>IRPF</span><strong id="r-irpf">—</strong></div>
+                            <div class="calc-result-row"><span>Beneficio neto</span><strong id="r-beneficio">—</strong></div>
+                            <div class="calc-result-row big"><span>Cashflow</span><strong id="r-cashflow">—</strong></div>
+                        </div>
+
+                        <div class="calc-result-block">
+                            <h4>Rentabilidades</h4>
+                            <div class="calc-result-row"><span>Bruta</span><strong id="r-bruta">—</strong></div>
+                            <div class="calc-result-row"><span>Neta (post-IRPF)</span><strong id="r-neta">—</strong></div>
+                            <div class="calc-result-row"><span>Por flujo de caja</span><strong id="r-flujo">—</strong></div>
+                            <div class="calc-result-row"><span>Por pago de deuda</span><strong id="r-deuda">—</strong></div>
+                            <div class="calc-result-row"><span>Por inflación</span><strong id="r-inflacion">—</strong></div>
+                            <div class="calc-result-row big"><span>TOTAL</span><strong id="r-total">—</strong></div>
+                        </div>
+
+                        <div class="calc-result-block">
+                            <h4>Métricas Inversor Directivo</h4>
+                            <div class="calc-result-row"><span>Múltiplo compra/alquiler</span><strong id="r-multiplo">—</strong></div>
+                            <div class="calc-result-row"><span>Calidad inversión</span><strong id="r-calidad">—</strong></div>
+                            <div class="calc-result-row"><span>Mín. alquiler</span><strong id="r-min-alq">—</strong></div>
+                            <div class="calc-result-row big"><span>Margen seguridad</span><strong id="r-margen">—</strong></div>
+                        </div>
+
+                        <div class="calc-actions">
+                            <button id="btn-calc-clear" class="btn-ghost">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                Limpiar
+                            </button>
+                            <button id="btn-calc-save" class="btn-primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                Guardar como vivienda
+                            </button>
+                        </div>
+                        <p class="calc-help">"Guardar como vivienda" añade el análisis a tu lista y lo sube a GitHub (requiere configuración).</p>
+                    </div>
+                </div>
+            </div>
+        </main>
         <main id="view-benchmarks" class="view">
             <div class="view-header">
                 <h2 class="view-title">Benchmarks · Talavera de la Reina</h2>

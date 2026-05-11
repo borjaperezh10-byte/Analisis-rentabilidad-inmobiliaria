@@ -39,7 +39,8 @@ let state = {
     rawData: null,        // datos del json sin modificar
     activeView: 'viviendas',
     activeFilter: 'all',
-    sortBy: 'cashflow',
+    sortBy: 'fechaAnalisis',
+    activeCity: null,     // slug de la ciudad activa
 };
 
 // ---- ALMACENAMIENTO LOCAL ----
@@ -159,6 +160,29 @@ function applyLocalChanges() {
     const deleted = new Set(localData.getDeleted());
     state.data = JSON.parse(JSON.stringify(state.rawData)); // deep clone
     state.data.viviendas = state.data.viviendas.filter(v => !deleted.has(v.id));
+
+    // Inicializar ciudad activa si no está
+    if (!state.activeCity) {
+        // 1) intentar localStorage
+        const savedCity = localStorage.getItem('inv_active_city');
+        if (savedCity && state.data.ciudades?.some(c => c.slug === savedCity)) {
+            state.activeCity = savedCity;
+        }
+        // 2) usar la default del JSON
+        else if (state.data.meta?.ciudadActivaPorDefecto) {
+            state.activeCity = state.data.meta.ciudadActivaPorDefecto;
+        }
+        // 3) primera ciudad disponible
+        else if (state.data.ciudades?.length > 0) {
+            state.activeCity = state.data.ciudades[0].slug;
+        }
+    }
+}
+
+// Devuelve la ciudad activa completa (objeto con slug, nombre, benchmarks, criterios...)
+function getActiveCity() {
+    if (!state.data?.ciudades) return null;
+    return state.data.ciudades.find(c => c.slug === state.activeCity) || state.data.ciudades[0];
 }
 
 // =========================================================================
@@ -252,6 +276,7 @@ function setupActions() {
     // Configuración GitHub e importar
     setupConfigView();
     setupImportPanel();
+    setupCalculadora();
     updateGitHubStatusIndicator();
 }
 
@@ -405,11 +430,27 @@ window.removePendiente = removePendiente;
 
 function getFilteredViviendas() {
     let viviendas = [...state.data.viviendas];
+
+    // Filtrar por ciudad activa
+    if (state.activeCity) {
+        viviendas = viviendas.filter(v => {
+            // Si la vivienda tiene ciudadSlug, comparar; si no, asignar por localidad
+            if (v.ciudadSlug) return v.ciudadSlug === state.activeCity;
+            // Compatibilidad: viviendas antiguas sin ciudadSlug
+            const ciudad = getActiveCity();
+            if (!ciudad) return false;
+            return (v.localidad || '').toLowerCase().includes(ciudad.nombre.toLowerCase().split(' ')[0].toLowerCase());
+        });
+    }
+
     if (state.activeFilter !== 'all') {
         viviendas = viviendas.filter(v => v.filtros.verdict === state.activeFilter);
     }
+
     viviendas.sort((a, b) => {
         switch (state.sortBy) {
+            case 'fechaAnalisis':
+                return (b.fechaAnalisis || '').localeCompare(a.fechaAnalisis || '');
             case 'cashflow':           return (b.calculo.cashflowAnual ?? -Infinity) - (a.calculo.cashflowAnual ?? -Infinity);
             case 'rentabilidadBruta':  return (b.calculo.rentabilidadBruta ?? 0) - (a.calculo.rentabilidadBruta ?? 0);
             case 'margenSeguridad':    return (b.calculo.margenSeguridadPct ?? -Infinity) - (a.calculo.margenSeguridadPct ?? -Infinity);
@@ -426,6 +467,7 @@ function getFilteredViviendas() {
 // RENDER PRINCIPAL
 // =========================================================================
 function renderAll() {
+    setupCitySelector();
     document.getElementById('lastUpdated').textContent = `Actualizado ${fmt.date(state.data.meta.lastUpdated)}`;
     renderViviendas();
     renderPendientes();
@@ -433,21 +475,44 @@ function renderAll() {
     renderCriterios();
 }
 
+function setupCitySelector() {
+    const sel = document.getElementById('city-selector');
+    if (!sel) return;
+    const ciudades = state.data.ciudades || [];
+    sel.innerHTML = ciudades.map(c =>
+        `<option value="${c.slug}" ${c.slug === state.activeCity ? 'selected' : ''}>${c.nombre}</option>`
+    ).join('');
+    sel.onchange = (e) => {
+        state.activeCity = e.target.value;
+        localStorage.setItem('inv_active_city', state.activeCity);
+        renderViviendas();
+        renderBenchmarks();
+        renderCriterios();
+    };
+}
+
 // ---- VISTA VIVIENDAS ----
 function renderViviendas() {
-    const all = state.data.viviendas;
+    // Solo las de la ciudad activa para los KPIs
+    let cityViviendas = state.data.viviendas;
+    if (state.activeCity) {
+        cityViviendas = cityViviendas.filter(v => {
+            if (v.ciudadSlug) return v.ciudadSlug === state.activeCity;
+            const ciudad = getActiveCity();
+            if (!ciudad) return false;
+            return (v.localidad || '').toLowerCase().includes(ciudad.nombre.toLowerCase().split(' ')[0].toLowerCase());
+        });
+    }
     const counts = {
-        total: all.length,
-        pass: all.filter(v => v.filtros.verdict === 'pass').length,
-        warn: all.filter(v => v.filtros.verdict === 'warning').length,
-        fail: all.filter(v => v.filtros.verdict === 'fail').length,
+        total: cityViviendas.length,
+        pass: cityViviendas.filter(v => v.filtros.verdict === 'pass').length,
+        warn: cityViviendas.filter(v => v.filtros.verdict === 'warning').length,
+        fail: cityViviendas.filter(v => v.filtros.verdict === 'fail').length,
     };
     document.getElementById('kpi-total').textContent = counts.total;
     document.getElementById('kpi-pass').textContent  = counts.pass;
     document.getElementById('kpi-warn').textContent  = counts.warn;
     document.getElementById('kpi-fail').textContent  = counts.fail;
-    document.getElementById('kpi-inversion').textContent =
-        fmt.eur(all.reduce((s, v) => s + (v.calculo.costeTotal || 0), 0));
 
     const filtered = getFilteredViviendas();
     const grid = document.getElementById('grid-viviendas');
@@ -458,7 +523,6 @@ function renderViviendas() {
     grid.innerHTML = filtered.map(v => renderCard(v)).join('');
     grid.querySelectorAll('.card').forEach(c => {
         c.addEventListener('click', (e) => {
-            // Si clicaron en el botón X de eliminar, eliminar y no abrir modal
             const delBtn = e.target.closest('.card-delete');
             if (delBtn) {
                 e.stopPropagation();
@@ -486,6 +550,23 @@ function renderCard(v) {
     const cfClass = cashflow >= 0 ? 'pos' : 'neg';
     const msClass = ms >= 0.25 ? 'pos' : ms >= 0 ? '' : 'neg';
 
+    // Texto del motivo (solo para warning y fail)
+    // Construir motivo legible a partir de verdictRazones (array) o verdictTexto (string)
+    let motivoBloque = '';
+    if (verdict === 'warning' || verdict === 'fail') {
+        let motivoStr = '';
+        if (Array.isArray(v.filtros.verdictRazones) && v.filtros.verdictRazones.length > 0) {
+            motivoStr = v.filtros.verdictRazones.join(' · ');
+        } else if (v.filtros.verdictTexto) {
+            motivoStr = v.filtros.verdictTexto;
+        }
+        if (motivoStr) {
+            // Truncar visual a ~140 caracteres (2 líneas aprox)
+            const display = motivoStr.length > 140 ? motivoStr.slice(0, 137) + '…' : motivoStr;
+            motivoBloque = `<div class="card-verdict-reason">${display}</div>`;
+        }
+    }
+
     return `
         <article class="card verdict-${verdict}" data-id="${v.id}">
             <button class="card-delete" data-action="delete" data-id="${v.id}" aria-label="Eliminar vivienda" title="Eliminar de mi lista">
@@ -498,6 +579,7 @@ function renderCard(v) {
                 </div>
                 <span class="card-verdict">${verdictText}</span>
             </div>
+            ${motivoBloque}
             <div class="card-price-block">
                 <div>
                     <span class="card-price">${fmt.eur(v.datos.precio)}</span>
@@ -675,9 +757,40 @@ function renderModalContent(v) {
 // VISTA BENCHMARKS
 // =========================================================================
 function renderBenchmarks() {
-    const b = state.data.benchmarks.talavera;
+    const ciudad = getActiveCity();
+    const benchView = document.getElementById('view-benchmarks');
+    if (!ciudad || !ciudad.benchmarks) {
+        // Mostrar mensaje de "no hay benchmarks para esta ciudad"
+        const noBenchHTML = `
+            <div class="view-header">
+                <h2 class="view-title">Benchmarks · ${ciudad ? ciudad.nombre : '—'}</h2>
+                <p class="view-sub">Datos de referencia del mercado</p>
+            </div>
+            <div class="bench-card" style="text-align:center;padding:60px 32px;">
+                <h3 style="font-family:var(--font-display);font-weight:500;font-size:22px;letter-spacing:-0.01em;margin-bottom:8px;">Sin benchmarks para esta ciudad</h3>
+                <p style="color:var(--ink-muted);font-size:14px;max-width:520px;margin:0 auto;line-height:1.6;">
+                    Aún no se han cargado datos de referencia para <strong>${ciudad ? ciudad.nombre : 'esta ubicación'}</strong>.
+                    ${ciudad && ciudad.nota ? '<br><br><em>' + ciudad.nota + '</em>' : ''}
+                    <br><br>Pídele a Claude los benchmarks (Real Advisor + BestYieldFinder) y un documento de criterios para esta ciudad.
+                </p>
+            </div>
+        `;
+        benchView.innerHTML = noBenchHTML;
+        return;
+    }
+
+    // Si la vista no tiene la estructura interna (porque antes mostramos "sin benchmarks"), reconstruirla
+    if (!document.getElementById('ra-em2')) {
+        benchView.innerHTML = buildBenchmarksTemplate(ciudad.nombre);
+    }
+
+    const b = ciudad.benchmarks;
     const ra = b.fuentes.realAdvisor;
     const byf = b.fuentes.bestYieldFinder;
+
+    // Actualizar título por si la ciudad cambió
+    const titleEl = benchView.querySelector('.view-title');
+    if (titleEl) titleEl.textContent = `Benchmarks · ${ciudad.nombre}`;
 
     document.getElementById('ra-em2').textContent = fmt.em2(ra.em2Mediano);
     document.getElementById('ra-precio').textContent = fmt.eur(ra.precioMediano);
@@ -733,15 +846,84 @@ function renderBenchmarks() {
     `;
 }
 
+// Template del cuerpo de Benchmarks para reconstruir si fue reemplazado
+function buildBenchmarksTemplate(nombreCiudad) {
+    return `
+        <div class="view-header">
+            <h2 class="view-title">Benchmarks · ${nombreCiudad}</h2>
+            <p class="view-sub">Datos de referencia del mercado</p>
+        </div>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Comparativa de fuentes</h3>
+            <p class="bench-card-sub">La verdad del mercado está entre las dos</p>
+            <div class="source-grid">
+                <div class="source-box source-ra">
+                    <span class="source-tag">RealAdvisor</span>
+                    <p class="source-desc">Transacciones reales, conservador</p>
+                    <div class="source-metrics">
+                        <div><span>€/m² piso</span><strong id="ra-em2">—</strong></div>
+                        <div><span>Precio mediano</span><strong id="ra-precio">—</strong></div>
+                        <div><span>Alquiler mediano</span><strong id="ra-alq">—</strong></div>
+                    </div>
+                </div>
+                <div class="source-box source-byf">
+                    <span class="source-tag">BestYieldFinder</span>
+                    <p class="source-desc">Anuncios publicados, optimista</p>
+                    <div class="source-metrics">
+                        <div><span>€/m² piso</span><strong id="byf-em2">—</strong></div>
+                        <div><span>Precio mediano</span><strong id="byf-precio">—</strong></div>
+                        <div><span>Alquiler mediano</span><strong id="byf-alq">—</strong></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Rentabilidad bruta por tamaño</h3>
+            <p class="bench-card-sub">Fuente: BestYieldFinder · sweet spot resaltado</p>
+            <div id="bench-tamano" class="size-bars"></div>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Calles "en precio"</h3>
+            <p class="bench-card-sub">Filtra tu búsqueda por estas calles para aumentar probabilidad de éxito</p>
+            <div id="bench-calles" class="calles-grid"></div>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Catalizadores de demanda</h3>
+            <p class="bench-card-sub">Factores estructurales que mueven el mercado</p>
+            <div id="bench-catalizadores" class="catalizadores-grid"></div>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Puntuación del mercado</h3>
+            <p class="bench-card-sub">Fuente: BestYieldFinder · escala 0-100</p>
+            <div id="bench-scoring" class="scoring-grid"></div>
+        </section>
+    `;
+}
+
 // =========================================================================
 // VISTA CRITERIOS
 // =========================================================================
 function renderCriterios() {
-    const cri = state.data.benchmarks.talavera.criterios;
-    const params = state.data.parametros;
+    const ciudad = getActiveCity();
+    const view = document.getElementById('view-criterios');
+    const titleEl = view.querySelector('.view-title');
+    if (titleEl) titleEl.textContent = `Criterios · ${ciudad ? ciudad.nombre : ''}`;
 
-    const talaveraEl = document.getElementById('criterios-talavera');
-    talaveraEl.innerHTML = `
+    if (!ciudad || !ciudad.benchmarks || !ciudad.benchmarks.criterios) {
+        // Solo mostrar la sección de filosofía y parámetros
+        const criteriosEl = document.getElementById('criterios-talavera');
+        if (criteriosEl) {
+            criteriosEl.innerHTML = `<p style="color:var(--ink-muted);font-style:italic;padding:20px;text-align:center;grid-column:1/-1;">Sin criterios definidos para ${ciudad ? ciudad.nombre : 'esta ciudad'}.</p>`;
+        }
+        // Renderizar igualmente los parámetros generales (filosofía y params)
+        renderParamsGenerales();
+        return;
+    }
+
+    const cri = ciudad.benchmarks.criterios;
+
+    const criteriosEl = document.getElementById('criterios-talavera');
+    criteriosEl.innerHTML = `
         <div class="criterio-item">
             <div class="criterio-label">Tipo de inmueble</div>
             <div class="criterio-value">${cri.tipo}</div>
@@ -780,7 +962,13 @@ function renderCriterios() {
         </div>
     `;
 
+    renderParamsGenerales();
+}
+
+function renderParamsGenerales() {
+    const params = state.data.parametros;
     const paramsEl = document.getElementById('criterios-params');
+    if (!paramsEl) return;
     paramsEl.innerHTML = `
         <div class="criterio-item">
             <div class="criterio-label">Hipoteca financiada</div>
@@ -1140,6 +1328,440 @@ function setupImportPanel() {
             btnCommit.classList.remove('btn-loading');
         }
     });
+}
+
+// =========================================================================
+// CALCULADORA
+// =========================================================================
+
+// Lee todos los inputs y devuelve un objeto numérico
+function getCalcInputs() {
+    const num = (id, def = 0) => {
+        const el = document.getElementById(id);
+        if (!el) return def;
+        const v = parseFloat(el.value);
+        return isNaN(v) ? def : v;
+    };
+    const str = (id, def = '') => {
+        const el = document.getElementById(id);
+        return el ? (el.value || def) : def;
+    };
+    return {
+        localidad: str('c-localidad'),
+        zona: str('c-zona'),
+        url: str('c-url'),
+        tipo: str('c-tipo', 'Piso'),
+        ano: num('c-ano', null),
+        hab: num('c-hab'),
+        banos: num('c-banos'),
+        planta: str('c-planta'),
+        precio: num('c-precio'),
+        m2c: num('c-m2c'),
+        m2u: num('c-m2u'),
+        comunidad: num('c-comunidad'),
+        fin: num('c-fin', 70) / 100,
+        tipoInteres: num('c-tipo-interes', 3) / 100,
+        plazo: num('c-plazo', 25),
+        itp: num('c-itp', 9) / 100,
+        notaria: num('c-notaria'),
+        tasacion: num('c-tasacion'),
+        gestoria: num('c-gestoria'),
+        retoques: num('c-retoques'),
+        agencia: num('c-agencia'),
+        otros: num('c-otros'),
+        alquiler: num('c-alquiler'),
+        ibi: num('c-ibi'),
+        segHogar: num('c-seg-hogar'),
+        segVida: num('c-seg-vida'),
+        segImpago: num('c-seg-impago'),
+        vacancia: num('c-vacancia', 8) / 100,
+        mantenimiento: num('c-mantenimiento', 10) / 100,
+        inflacion: num('c-inflacion', 2) / 100,
+        irpf: num('c-irpf', 30) / 100,
+        vh: str('c-vh', 'si') === 'si',
+        vcSuelo: num('c-vc-suelo', null),
+        vcConst: num('c-vc-const', null),
+    };
+}
+
+function calcularRentabilidad(inputs) {
+    const i = inputs;
+    if (!i.precio || !i.m2c) return null;
+
+    // Coste total
+    const impuestos = i.precio * i.itp;
+    const costeTotal = i.precio + impuestos + i.retoques + i.agencia + i.notaria + i.tasacion + i.gestoria + i.otros;
+
+    // Hipoteca
+    const importeHip = i.precio * i.fin;
+    const capitalPropio = costeTotal - importeHip;
+
+    // Cuota mensual (PMT)
+    const r = i.tipoInteres / 12;
+    const n = i.plazo * 12;
+    let cuotaMensual = 0;
+    if (importeHip > 0 && r > 0) {
+        cuotaMensual = importeHip * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    } else if (importeHip > 0) {
+        cuotaMensual = importeHip / n;
+    }
+    const cuotaAnual = cuotaMensual * 12;
+
+    // Año 1: amort/interés
+    let saldo = importeHip;
+    let totalInt = 0, totalAmort = 0;
+    for (let m = 0; m < 12; m++) {
+        const interes = saldo * r;
+        const amort = cuotaMensual - interes;
+        totalInt += interes;
+        totalAmort += amort;
+        saldo -= amort;
+    }
+
+    // Ingresos / gastos
+    const ingresosAnuales = i.alquiler * 12;
+    const gastosAnuales =
+        (i.comunidad * 12) +
+        i.segHogar + i.segVida + i.segImpago + i.ibi +
+        (ingresosAnuales * i.vacancia) +
+        (ingresosAnuales * i.mantenimiento);
+
+    const beneficioSinImp = ingresosAnuales - gastosAnuales;
+
+    // IRPF
+    const vcSuelo = i.vcSuelo ?? (i.precio * 0.375); // estimación 37.5% del precio
+    const vcConst = i.vcConst ?? (i.precio * 0.125); // estimación 12.5% del precio
+    const ratioConstr = (vcSuelo + vcConst) > 0 ? vcConst / (vcSuelo + vcConst) : 0.25;
+    const amortVivienda = 0.03 * ratioConstr * i.precio + 0.03 * (impuestos + i.retoques + i.agencia + i.notaria);
+    const intereses = totalInt;
+    const factor = i.vh ? 0.4 : 1.0;
+    const irpfAnual = factor * i.irpf * Math.max(0, beneficioSinImp - amortVivienda - intereses);
+
+    const beneficioNeto = beneficioSinImp - irpfAnual;
+    const cashflowAnual = beneficioNeto - cuotaAnual;
+
+    // Rentabilidades
+    const rentFlujo = capitalPropio > 0 ? cashflowAnual / capitalPropio : 0;
+    const rentDeuda = capitalPropio > 0 ? totalAmort / capitalPropio : 0;
+    const rentInflacion = capitalPropio > 0 ? i.precio * i.inflacion / capitalPropio : 0;
+    const rentTotal = rentFlujo + rentDeuda + rentInflacion;
+    const rentBruta = costeTotal > 0 ? ingresosAnuales / costeTotal : 0;
+    const rentNeta = costeTotal > 0 ? beneficioNeto / costeTotal : 0;
+    const roce = rentFlujo;
+
+    // Múltiplo y calidad
+    const multiplo = i.alquiler > 0
+        ? (i.precio + impuestos + i.notaria + i.retoques + i.tasacion + i.gestoria) / i.alquiler
+        : 0;
+    let calidad = '—';
+    if (multiplo > 0) {
+        if (multiplo < 150) calidad = 'Extraordinaria';
+        else if (multiplo < 180) calidad = 'Buena';
+        else if (multiplo < 210) calidad = 'Correcta';
+        else if (multiplo < 240) calidad = 'Regular';
+        else calidad = 'Mala';
+    }
+
+    // Mínimo alquiler y margen seguridad
+    const minAlquiler = i.alquiler > 0 ? (gastosAnuales + cuotaAnual + irpfAnual) / 12 : 0;
+    const margenSegMes = i.alquiler - minAlquiler;
+    const margenSegPct = i.alquiler > 0 ? margenSegMes / i.alquiler : 0;
+
+    // €/m² y verdict según ciudad activa
+    const em2 = i.m2c > 0 ? i.precio / i.m2c : 0;
+    const razones = [];
+    const ciudad = getActiveCity();
+    const cri = ciudad?.benchmarks?.criterios;
+
+    if (cri) {
+        if (i.tipo !== cri.tipo && cri.tipo === 'Piso' && !['Piso','Ático','Dúplex','Estudio'].includes(i.tipo)) {
+            razones.push(`tipo ${i.tipo.toLowerCase()} (≠${cri.tipo})`);
+        }
+        if (i.m2c && cri.m2Min && cri.m2Max) {
+            if (i.m2c < cri.m2Min) razones.push(`${i.m2c}m² <${cri.m2Min}`);
+            else if (i.m2c > cri.m2Max) razones.push(`${i.m2c}m² >${cri.m2Max}`);
+        }
+        if (i.ano && cri.anoMin && i.ano < cri.anoMin) {
+            razones.push(`año ${i.ano} <${cri.anoMin}`);
+        }
+        if (em2 && cri.em2Riesgo && em2 > cri.em2Riesgo) {
+            razones.push(`€/m²=${Math.round(em2)} riesgo`);
+        } else if (em2 && cri.em2Aceptable && em2 > cri.em2Aceptable) {
+            razones.push(`€/m²=${Math.round(em2)} >${cri.em2Aceptable}`);
+        }
+    }
+
+    let verdict = 'pass';
+    if (razones.length === 0) verdict = 'pass';
+    else if (razones.some(r => /riesgo/i.test(r)) || razones.length >= 3) verdict = 'fail';
+    else if (i.ano && cri && cri.anoMin && i.ano < cri.anoMin) verdict = 'fail';
+    else verdict = 'warning';
+
+    return {
+        em2, costeTotal, capitalPropio, importeHip,
+        cuotaMensual, cuotaAnual, totalAmort, totalInt,
+        ingresosAnuales, gastosAnuales, beneficioSinImp,
+        amortVivienda, irpfAnual, beneficioNeto, cashflowAnual,
+        rentFlujo, rentDeuda, rentInflacion, rentTotal,
+        rentBruta, rentNeta, roce,
+        multiplo, calidad,
+        minAlquiler, margenSegMes, margenSegPct,
+        vsRA: ciudad?.benchmarks?.fuentes?.realAdvisor?.em2Mediano
+            ? (em2 / ciudad.benchmarks.fuentes.realAdvisor.em2Mediano) - 1
+            : null,
+        vsBYF: ciudad?.benchmarks?.fuentes?.bestYieldFinder?.em2Mediano
+            ? (em2 / ciudad.benchmarks.fuentes.bestYieldFinder.em2Mediano) - 1
+            : null,
+        razones, verdict,
+        vcSuelo, vcConst, impuestos,
+    };
+}
+
+function renderCalcResults(c) {
+    const set = (id, val, cls = '') => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = val;
+        el.className = cls;
+    };
+    const banner = document.getElementById('calc-verdict-banner');
+    const bannerIcon = document.getElementById('calc-verdict-icon');
+    const bannerLabel = document.getElementById('calc-verdict-label');
+
+    if (!c) {
+        // Sin datos suficientes
+        banner.className = 'calc-verdict-banner';
+        bannerIcon.textContent = '—';
+        bannerLabel.textContent = 'Rellena al menos precio y m²';
+        ['r-coste-total','r-capital','r-em2','r-cuota','r-amort','r-int',
+         'r-ingresos','r-gastos','r-irpf','r-beneficio','r-cashflow',
+         'r-bruta','r-neta','r-flujo','r-deuda','r-inflacion','r-total',
+         'r-multiplo','r-calidad','r-min-alq','r-margen'].forEach(id => set(id, '—'));
+        return;
+    }
+
+    // Verdict banner
+    const txt = c.verdict === 'pass' ? '✓ Pasa filtro'
+              : c.verdict === 'warning' ? '~ Zona gris'
+              : '✗ Descartada';
+    banner.className = `calc-verdict-banner ${c.verdict}`;
+    bannerIcon.textContent = c.verdict === 'pass' ? '✓' : c.verdict === 'warning' ? '~' : '✗';
+    bannerLabel.textContent = c.razones.length > 0
+        ? `${txt} · ${c.razones.join(' · ')}`
+        : txt;
+
+    set('r-coste-total', fmt.eur(c.costeTotal));
+    set('r-capital', fmt.eur(c.capitalPropio));
+    set('r-em2', fmt.em2(c.em2));
+    set('r-cuota', fmt.eurDec(c.cuotaMensual));
+    set('r-amort', fmt.eur(c.totalAmort));
+    set('r-int', fmt.eur(c.totalInt));
+    set('r-ingresos', fmt.eur(c.ingresosAnuales));
+    set('r-gastos', fmt.eur(-c.gastosAnuales), 'neg');
+    set('r-irpf', fmt.eur(-c.irpfAnual), c.irpfAnual > 0 ? 'neg' : '');
+    set('r-beneficio', fmt.eur(c.beneficioNeto));
+    set('r-cashflow', fmt.eur(c.cashflowAnual), c.cashflowAnual >= 0 ? 'pos' : 'neg');
+    set('r-bruta', fmt.pctNoSign(c.rentBruta));
+    set('r-neta', fmt.pctNoSign(c.rentNeta));
+    set('r-flujo', fmt.pct(c.rentFlujo), c.rentFlujo >= 0 ? 'pos' : 'neg');
+    set('r-deuda', fmt.pct(c.rentDeuda), 'pos');
+    set('r-inflacion', fmt.pct(c.rentInflacion), 'pos');
+    set('r-total', fmt.pct(c.rentTotal), c.rentTotal >= 0 ? 'pos' : 'neg');
+    set('r-multiplo', isFinite(c.multiplo) && c.multiplo > 0 ? Math.round(c.multiplo).toString() : '—');
+    set('r-calidad', c.calidad);
+    set('r-min-alq', c.minAlquiler > 0 ? fmt.eur(c.minAlquiler) + '/mes' : '—');
+    set('r-margen', fmt.pct(c.margenSegPct), c.margenSegPct >= 0.25 ? 'pos' : c.margenSegPct >= 0 ? '' : 'neg');
+}
+
+function setupCalculadora() {
+    // Pre-rellenar con valores por defecto según ciudad activa
+    prefillCalcFromCity();
+
+    // Recálculo en tiempo real al cambiar cualquier input
+    const allInputs = document.querySelectorAll('#view-calculadora input, #view-calculadora select');
+    const debounced = debounce(() => {
+        const inputs = getCalcInputs();
+        const result = calcularRentabilidad(inputs);
+        renderCalcResults(result);
+    }, 150);
+
+    allInputs.forEach(el => {
+        el.addEventListener('input', debounced);
+        el.addEventListener('change', debounced);
+    });
+
+    // Botón limpiar
+    document.getElementById('btn-calc-clear').addEventListener('click', () => {
+        if (!confirm('¿Limpiar todos los campos de la calculadora?')) return;
+        allInputs.forEach(el => {
+            if (el.tagName === 'SELECT') {
+                el.selectedIndex = 0;
+            } else {
+                el.value = '';
+            }
+        });
+        prefillCalcFromCity();
+        renderCalcResults(null);
+        toast('Calculadora limpiada', 'success');
+    });
+
+    // Botón guardar como vivienda
+    document.getElementById('btn-calc-save').addEventListener('click', saveCalcAsVivienda);
+
+    // Render inicial
+    renderCalcResults(null);
+}
+
+function debounce(fn, wait) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), wait);
+    };
+}
+
+function prefillCalcFromCity() {
+    const ciudad = getActiveCity();
+    if (!ciudad) return;
+    // Pre-rellenar localidad e ITP
+    const locInput = document.getElementById('c-localidad');
+    if (locInput && !locInput.value) locInput.value = ciudad.nombre;
+    const itpInput = document.getElementById('c-itp');
+    if (itpInput && ciudad.itp !== undefined) itpInput.value = (ciudad.itp * 100).toFixed(1);
+}
+
+async function saveCalcAsVivienda() {
+    const inputs = getCalcInputs();
+    const c = calcularRentabilidad(inputs);
+
+    if (!c) {
+        toast('Rellena al menos precio y m²', 'error');
+        return;
+    }
+    if (!inputs.precio || !inputs.m2c) {
+        toast('Faltan datos clave (precio, m²)', 'error');
+        return;
+    }
+    if (!ghConfig.isConfigured()) {
+        toast('Configura GitHub primero', 'error');
+        switchView('config');
+        return;
+    }
+
+    // Construir el objeto vivienda
+    let id;
+    const urlMatch = (inputs.url || '').match(/inmueble\/(\d+)/);
+    if (urlMatch) {
+        id = urlMatch[1];
+    } else {
+        // Generar id manual basado en timestamp si no hay URL Idealista
+        id = 'manual-' + Date.now();
+    }
+
+    const ciudad = getActiveCity();
+
+    const vivienda = {
+        id: id,
+        url: inputs.url || '',
+        fechaAnalisis: new Date().toISOString().split('T')[0],
+        localidad: inputs.localidad || (ciudad ? ciudad.nombre : ''),
+        zona: inputs.zona || '',
+        direccion: inputs.zona || '',
+        tipo: inputs.tipo,
+        titulo: `${inputs.tipo} ${inputs.hab ? '(' + inputs.hab + ' hab) ' : ''}${inputs.zona ? 'en ' + inputs.zona : ''}`.trim() || `${inputs.tipo} ${id}`,
+        ciudadSlug: state.activeCity,
+        datos: {
+            precio: inputs.precio,
+            m2Construidos: inputs.m2c,
+            m2Utiles: inputs.m2u || inputs.m2c,
+            habitaciones: inputs.hab,
+            banos: inputs.banos,
+            planta: inputs.planta,
+            ano: inputs.ano,
+            estado: '',
+            calefaccion: '',
+            aireAcondicionado: false,
+            ascensor: false,
+            terraza: false,
+            garaje: false,
+            comunidadMes: inputs.comunidad,
+            bajadaPrecio: null,
+            agencia: '',
+        },
+        estimaciones: {
+            alquilerMensual: inputs.alquiler,
+            alquilerNotas: 'Introducido manualmente desde la calculadora.',
+            ibi: inputs.ibi,
+            vcSuelo: Math.round(c.vcSuelo),
+            vcConstruccion: Math.round(c.vcConst),
+            vacancia: inputs.vacancia,
+            mantenimiento: inputs.mantenimiento,
+        },
+        calculo: {
+            costeTotal: Math.round(c.costeTotal),
+            capitalPropio: Math.round(c.capitalPropio),
+            cuotaMensual: Math.round(c.cuotaMensual * 100) / 100,
+            cuotaAnual: Math.round(c.cuotaAnual * 100) / 100,
+            amortizacionAno1: Math.round(c.totalAmort * 100) / 100,
+            interesesAno1: Math.round(c.totalInt * 100) / 100,
+            ingresosAnuales: c.ingresosAnuales,
+            gastosAnuales: Math.round(c.gastosAnuales),
+            irpfAnual: Math.round(c.irpfAnual * 100) / 100,
+            beneficioNeto: Math.round(c.beneficioNeto * 100) / 100,
+            cashflowAnual: Math.round(c.cashflowAnual * 100) / 100,
+            rentabilidadBruta: Math.round(c.rentBruta * 10000) / 10000,
+            rentabilidadNeta: Math.round(c.rentNeta * 10000) / 10000,
+            rentabilidadFlujoCaja: Math.round(c.rentFlujo * 10000) / 10000,
+            rentabilidadPagoDeuda: Math.round(c.rentDeuda * 10000) / 10000,
+            rentabilidadInflacion: Math.round(c.rentInflacion * 10000) / 10000,
+            rentabilidadTotal: Math.round(c.rentTotal * 10000) / 10000,
+            roce: Math.round(c.roce * 10000) / 10000,
+            multiplo: Math.round(c.multiplo),
+            calidadInversion: c.calidad,
+            minimoAlquiler: Math.round(c.minAlquiler),
+            margenSeguridadMensual: Math.round(c.margenSegMes),
+            margenSeguridadPct: Math.round(c.margenSegPct * 10000) / 10000,
+        },
+        filtros: {
+            vsRA: c.vsRA != null ? Math.round(c.vsRA * 10000) / 10000 : null,
+            vsBYF: c.vsBYF != null ? Math.round(c.vsBYF * 10000) / 10000 : null,
+            verdict: c.verdict,
+            verdictRazones: c.razones,
+            verdictTexto: c.razones.length > 0 ? c.razones.join(', ') : 'Pasa filtro',
+        },
+        notas: 'Análisis introducido manualmente desde la calculadora.',
+    };
+
+    // Commit a GitHub
+    const btn = document.getElementById('btn-calc-save');
+    btn.classList.add('btn-loading');
+    try {
+        const file = await ghReadFile('data.json');
+        const existing = file.parsed;
+        const map = new Map(existing.viviendas.map(v => [v.id, v]));
+        const existed = map.has(vivienda.id);
+        map.set(vivienda.id, vivienda);
+        existing.viviendas = [...map.values()];
+        existing.meta = existing.meta || {};
+        existing.meta.lastUpdated = new Date().toISOString().split('T')[0];
+
+        const message = existed
+            ? `Calculadora: actualizar ${vivienda.id}`
+            : `Calculadora: añadir ${vivienda.id}`;
+        await ghWriteFile('data.json', JSON.stringify(existing, null, 2), file.sha, message);
+
+        toast(existed ? 'Vivienda actualizada en GitHub' : 'Vivienda guardada en GitHub', 'success');
+        // Refrescar el view tras unos segundos
+        setTimeout(() => location.reload(), 2000);
+    } catch (err) {
+        console.error(err);
+        let msg = err.message;
+        if (msg.includes('401')) msg = 'Token inválido o caducado. Revisa la configuración.';
+        else if (msg.includes('404')) msg = 'data.json no encontrado en el repo.';
+        toast(`Error: ${msg}`, 'error');
+    } finally {
+        btn.classList.remove('btn-loading');
+    }
 }
 
 // =========================================================================

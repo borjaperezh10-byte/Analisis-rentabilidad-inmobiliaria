@@ -1,8 +1,9 @@
 {
   "meta": {
     "version": "1.0",
-    "lastUpdated": "2026-05-10",
-    "user": "Borja P."
+    "lastUpdated": "2026-05-09",
+    "user": "Borja P.",
+    "ciudadActivaPorDefecto": "talavera"
   },
   "parametros": {
     "hipoteca": {
@@ -18,180 +19,6 @@
       "vacancia": 0.08,
       "mantenimiento": 0.1,
       "inflacion": 0.02
-    }
-  },
-  "benchmarks": {
-    "talavera": {
-      "fuentes": {
-        "realAdvisor": {
-          "em2Mediano": 1059,
-          "em2P10": 491,
-          "em2P90": 2347,
-          "precioMediano": 95346,
-          "alquilerMediano": 587,
-          "alquilerPorHab": {
-            "estudio": 452,
-            "1hab": null,
-            "2hab": 492,
-            "3hab": 505,
-            "4hab": 508
-          }
-        },
-        "bestYieldFinder": {
-          "em2Mediano": 1360,
-          "precioMediano": 134900,
-          "alquilerMediano": 750,
-          "alquilerPorHab": {
-            "estudio": 550,
-            "1hab": 650,
-            "2hab": 730,
-            "3hab": 760,
-            "4hab": 990
-          },
-          "rentabilidadPorHab": {
-            "1hab": 0.0934,
-            "2hab": 0.0725,
-            "3hab": 0.0704,
-            "4hab": 0.072
-          },
-          "rentabilidadPorTamano": [
-            {
-              "rango": "40-50 m²",
-              "rentabilidad": 0.0722,
-              "em2": 2160
-            },
-            {
-              "rango": "50-60 m²",
-              "rentabilidad": 0.0819,
-              "em2": 1660
-            },
-            {
-              "rango": "60-70 m²",
-              "rentabilidad": 0.0933,
-              "em2": 1330,
-              "destacado": true
-            },
-            {
-              "rango": "70-80 m²",
-              "rentabilidad": 0.0711,
-              "em2": 1600
-            },
-            {
-              "rango": "80-90 m²",
-              "rentabilidad": 0.0796,
-              "em2": 1380,
-              "destacado": true
-            },
-            {
-              "rango": "90-100 m²",
-              "rentabilidad": 0.0749,
-              "em2": 1330
-            },
-            {
-              "rango": "100-110 m²",
-              "rentabilidad": 0.0635,
-              "em2": 1420
-            },
-            {
-              "rango": "110-120 m²",
-              "rentabilidad": 0.073,
-              "em2": 1400
-            },
-            {
-              "rango": "120-130 m²",
-              "rentabilidad": 0.0655,
-              "em2": 1330
-            },
-            {
-              "rango": "130-140 m²",
-              "rentabilidad": 0.0657,
-              "em2": 1200
-            },
-            {
-              "rango": "140-150 m²",
-              "rentabilidad": 0.0673,
-              "em2": 1170
-            }
-          ],
-          "scoring": {
-            "general": 80,
-            "potencialInversion": 61,
-            "momentumPrecio": 24,
-            "demandaAlquiler": 47,
-            "demandaCompra": 38
-          }
-        }
-      },
-      "callesEnPrecio": [
-        {
-          "calle": "Calle Ildefonso Fernández Sánchez",
-          "em2": 950
-        },
-        {
-          "calle": "Calle de Bernardo González",
-          "em2": 964
-        },
-        {
-          "calle": "Calle de San Juan Bautista de La Salle",
-          "em2": 1058
-        },
-        {
-          "calle": "Calle de Morenito de Talavera",
-          "em2": 1064
-        },
-        {
-          "calle": "Calle del Piélago",
-          "em2": 1068
-        },
-        {
-          "calle": "Calle Fidel Martín Inés",
-          "em2": 1081
-        },
-        {
-          "calle": "Calle del General Moscardó",
-          "em2": 1084
-        },
-        {
-          "calle": "Calle de Isaac Gabaldón",
-          "em2": 1094
-        },
-        {
-          "calle": "Calle de San Vicente",
-          "em2": 1103
-        }
-      ],
-      "criterios": {
-        "zonas": [
-          "El Pilar - La Estación",
-          "Hospital - Nuevo Centro",
-          "Centro - Corte Inglés",
-          "Puerta de Cuartos - Av. Portugal"
-        ],
-        "tipo": "Piso",
-        "m2Min": 70,
-        "m2Max": 90,
-        "anoMin": 1980,
-        "em2Ideal": 1000,
-        "em2Aceptable": 1100,
-        "em2Riesgo": 1150,
-        "alquilerObjetivoMin": 600,
-        "alquilerObjetivoMax": 700,
-        "habitaciones": "2D grande o 3D"
-      },
-      "catalizadores": [
-        {
-          "nombre": "Meta Data Center",
-          "ubicacion": "Torrehierro Fase 2",
-          "estado": "PSI aprobado oct-2024",
-          "impacto": "Demanda alquiler ya visible"
-        },
-        {
-          "nombre": "AVE Madrid-Lisboa",
-          "ubicacion": "Estación Talavera",
-          "estado": "Trazado aprobado",
-          "impacto": "Horizonte ~2030"
-        }
-      ]
     }
   },
   "viviendas": [
@@ -265,7 +92,8 @@
         ],
         "verdictTexto": ">90 m² fuera del sweet spot"
       },
-      "notas": "Único del lote con €/m² en mediana RA y bajo BYF. Problema: tamaño excesivo (130 m²) reduce rentabilidad porcentual. Buen producto, pero no sweet spot inversor."
+      "notas": "Único del lote con €/m² en mediana RA y bajo BYF. Problema: tamaño excesivo (130 m²) reduce rentabilidad porcentual. Buen producto, pero no sweet spot inversor.",
+      "ciudadSlug": "talavera"
     },
     {
       "id": "110328278",
@@ -338,7 +166,8 @@
         ],
         "verdictTexto": "€/m² alto vs RA"
       },
-      "notas": "Atención: el anuncio indica explícitamente \"No dispone de calefacción\". En Talavera (clima continental con inviernos fríos) esto puede ser un freno importante a la hora de alquilar. Si se compra, presupuestar instalación AC frío-calor."
+      "notas": "Atención: el anuncio indica explícitamente \"No dispone de calefacción\". En Talavera (clima continental con inviernos fríos) esto puede ser un freno importante a la hora de alquilar. Si se compra, presupuestar instalación AC frío-calor.",
+      "ciudadSlug": "talavera"
     },
     {
       "id": "111303461",
@@ -412,7 +241,8 @@
         ],
         "verdictTexto": "Ático, <70m², €/m² disparado"
       },
-      "notas": "€/m² muy elevado (3.478 €/m²) por el extra de garaje + dos terrazas. Bajada reciente del 2%. Inversión arriesgada por superficie pequeña: si el inquilino se va, 46m² compite con muchos pisos similares."
+      "notas": "€/m² muy elevado (3.478 €/m²) por el extra de garaje + dos terrazas. Bajada reciente del 2%. Inversión arriesgada por superficie pequeña: si el inquilino se va, 46m² compite con muchos pisos similares.",
+      "ciudadSlug": "talavera"
     },
     {
       "id": "110219278",
@@ -485,7 +315,8 @@
         ],
         "verdictTexto": "Año 1970, €/m² alto"
       },
-      "notas": "Bajada reciente del 4%. Edificio del año 1970 — atención a derramas extraordinarias futuras. La calefacción eléctrica es un coste alto para el inquilino."
+      "notas": "Bajada reciente del 4%. Edificio del año 1970 — atención a derramas extraordinarias futuras. La calefacción eléctrica es un coste alto para el inquilino.",
+      "ciudadSlug": "talavera"
     },
     {
       "id": "111039132",
@@ -559,7 +390,8 @@
         ],
         "verdictTexto": "Chalet fuera de Talavera"
       },
-      "notas": "Inversión muy distinta al resto: pueblo rural (3.152 hab), 60 km de Madrid. Coste reforma 2ª planta no incluido (15-25k€ adicionales). Mercado alquiler residencial pequeño. Bajada del 11% indica venta lenta."
+      "notas": "Inversión muy distinta al resto: pueblo rural (3.152 hab), 60 km de Madrid. Coste reforma 2ª planta no incluido (15-25k€ adicionales). Mercado alquiler residencial pequeño. Bajada del 11% indica venta lenta.",
+      "ciudadSlug": "uceda"
     },
     {
       "id": "111151288",
@@ -632,81 +464,196 @@
         ],
         "verdictTexto": "Año 1974, €/m² alto"
       },
-      "notas": "Bajada reciente del 8%. Mejor perfil de alquiler del lote (reformado, gas natural, AC, ubicación céntrica). Inconveniente: solo 2 habitaciones, limita perfil de inquilino."
+      "notas": "Bajada reciente del 8%. Mejor perfil de alquiler del lote (reformado, gas natural, AC, ubicación céntrica). Inconveniente: solo 2 habitaciones, limita perfil de inquilino.",
+      "ciudadSlug": "talavera"
+    }
+  ],
+  "ciudades": [
+    {
+      "slug": "talavera",
+      "nombre": "Talavera de la Reina",
+      "ccaa": "Castilla-La Mancha",
+      "itp": 0.09,
+      "benchmarks": {
+        "fuentes": {
+          "realAdvisor": {
+            "em2Mediano": 1059,
+            "em2P10": 491,
+            "em2P90": 2347,
+            "precioMediano": 95346,
+            "alquilerMediano": 587,
+            "alquilerPorHab": {
+              "estudio": 452,
+              "1hab": null,
+              "2hab": 492,
+              "3hab": 505,
+              "4hab": 508
+            }
+          },
+          "bestYieldFinder": {
+            "em2Mediano": 1360,
+            "precioMediano": 134900,
+            "alquilerMediano": 750,
+            "alquilerPorHab": {
+              "estudio": 550,
+              "1hab": 650,
+              "2hab": 730,
+              "3hab": 760,
+              "4hab": 990
+            },
+            "rentabilidadPorHab": {
+              "1hab": 0.0934,
+              "2hab": 0.0725,
+              "3hab": 0.0704,
+              "4hab": 0.072
+            },
+            "rentabilidadPorTamano": [
+              {
+                "rango": "40-50 m²",
+                "rentabilidad": 0.0722,
+                "em2": 2160
+              },
+              {
+                "rango": "50-60 m²",
+                "rentabilidad": 0.0819,
+                "em2": 1660
+              },
+              {
+                "rango": "60-70 m²",
+                "rentabilidad": 0.0933,
+                "em2": 1330,
+                "destacado": true
+              },
+              {
+                "rango": "70-80 m²",
+                "rentabilidad": 0.0711,
+                "em2": 1600
+              },
+              {
+                "rango": "80-90 m²",
+                "rentabilidad": 0.0796,
+                "em2": 1380,
+                "destacado": true
+              },
+              {
+                "rango": "90-100 m²",
+                "rentabilidad": 0.0749,
+                "em2": 1330
+              },
+              {
+                "rango": "100-110 m²",
+                "rentabilidad": 0.0635,
+                "em2": 1420
+              },
+              {
+                "rango": "110-120 m²",
+                "rentabilidad": 0.073,
+                "em2": 1400
+              },
+              {
+                "rango": "120-130 m²",
+                "rentabilidad": 0.0655,
+                "em2": 1330
+              },
+              {
+                "rango": "130-140 m²",
+                "rentabilidad": 0.0657,
+                "em2": 1200
+              },
+              {
+                "rango": "140-150 m²",
+                "rentabilidad": 0.0673,
+                "em2": 1170
+              }
+            ],
+            "scoring": {
+              "general": 80,
+              "potencialInversion": 61,
+              "momentumPrecio": 24,
+              "demandaAlquiler": 47,
+              "demandaCompra": 38
+            }
+          }
+        },
+        "callesEnPrecio": [
+          {
+            "calle": "Calle Ildefonso Fernández Sánchez",
+            "em2": 950
+          },
+          {
+            "calle": "Calle de Bernardo González",
+            "em2": 964
+          },
+          {
+            "calle": "Calle de San Juan Bautista de La Salle",
+            "em2": 1058
+          },
+          {
+            "calle": "Calle de Morenito de Talavera",
+            "em2": 1064
+          },
+          {
+            "calle": "Calle del Piélago",
+            "em2": 1068
+          },
+          {
+            "calle": "Calle Fidel Martín Inés",
+            "em2": 1081
+          },
+          {
+            "calle": "Calle del General Moscardó",
+            "em2": 1084
+          },
+          {
+            "calle": "Calle de Isaac Gabaldón",
+            "em2": 1094
+          },
+          {
+            "calle": "Calle de San Vicente",
+            "em2": 1103
+          }
+        ],
+        "criterios": {
+          "zonas": [
+            "El Pilar - La Estación",
+            "Hospital - Nuevo Centro",
+            "Centro - Corte Inglés",
+            "Puerta de Cuartos - Av. Portugal"
+          ],
+          "tipo": "Piso",
+          "m2Min": 70,
+          "m2Max": 90,
+          "anoMin": 1980,
+          "em2Ideal": 1000,
+          "em2Aceptable": 1100,
+          "em2Riesgo": 1150,
+          "alquilerObjetivoMin": 600,
+          "alquilerObjetivoMax": 700,
+          "habitaciones": "2D grande o 3D"
+        },
+        "catalizadores": [
+          {
+            "nombre": "Meta Data Center",
+            "ubicacion": "Torrehierro Fase 2",
+            "estado": "PSI aprobado oct-2024",
+            "impacto": "Demanda alquiler ya visible"
+          },
+          {
+            "nombre": "AVE Madrid-Lisboa",
+            "ubicacion": "Estación Talavera",
+            "estado": "Trazado aprobado",
+            "impacto": "Horizonte ~2030"
+          }
+        ]
+      }
     },
     {
-      "id": "110691119",
-      "url": "https://www.idealista.com/inmueble/110691119/",
-      "fechaAnalisis": "2026-05-10",
-      "localidad": "Talavera de la Reina",
-      "zona": "El Pilar - La Estación",
-      "direccion": "Calle del Pilar",
-      "tipo": "Piso",
-      "titulo": "Piso en Calle del Pilar (4 hab)",
-      "datos": {
-        "precio": 129900,
-        "m2Construidos": 115,
-        "m2Utiles": 110,
-        "habitaciones": 4,
-        "banos": 2,
-        "planta": "2ª exterior con ascensor",
-        "ano": 1976,
-        "estado": "Buen estado",
-        "calefaccion": "Gas natural",
-        "aireAcondicionado": false,
-        "ascensor": true,
-        "terraza": true,
-        "garaje": false,
-        "comunidadMes": 60,
-        "bajadaPrecio": null,
-        "agencia": "Tecnocasa Estudio Ciudad de Talavera"
-      },
-      "estimaciones": {
-        "alquilerMensual": 600,
-        "alquilerNotas": "Estimación intermedia entre RA (508€ para 4hab) y BYF (990€). En zona céntrica con ascensor, gas natural y 4 hab, considero 600€/mes razonable a la baja.",
-        "ibi": 380,
-        "vcSuelo": 48713,
-        "vcConstruccion": 16238,
-        "vacancia": 0.08,
-        "mantenimiento": 0.1
-      },
-      "calculo": {
-        "costeTotal": 145191,
-        "capitalPropio": 54261,
-        "cuotaMensual": 431.2,
-        "cuotaAnual": 5174.4,
-        "amortizacionAno1": 2480.43,
-        "interesesAno1": 2693.98,
-        "ingresosAnuales": 7200,
-        "gastosAnuales": 2896,
-        "irpfAnual": 24.48,
-        "beneficioNeto": 4279.52,
-        "cashflowAnual": -894.89,
-        "rentabilidadBruta": 0.0496,
-        "rentabilidadNeta": 0.0295,
-        "rentabilidadFlujoCaja": -0.0165,
-        "rentabilidadPagoDeuda": 0.0457,
-        "rentabilidadInflacion": 0.0479,
-        "rentabilidadTotal": 0.0771,
-        "roce": -0.0165,
-        "multiplo": 242,
-        "calidadInversion": "Mala",
-        "minimoAlquiler": 675,
-        "margenSeguridadMensual": -75,
-        "margenSeguridadPct": -0.1243
-      },
-      "filtros": {
-        "vsRA": 0.0667,
-        "vsBYF": -0.1694,
-        "verdict": "fail",
-        "verdictRazones": [
-          ">90 m² (115)",
-          "año 1976 <1980",
-          "€/m²=1130 >1.100"
-        ],
-        "verdictTexto": ">90 m² (115), año 1976 <1980, €/m²=1130 >1.100"
-      },
-      "notas": "Piso de 4 habitaciones en zona céntrica con buen perfil aparente: 2ª planta con ascensor, gas natural, terraza, suelo de gres. Riesgos: (1) Año 1976 falla criterio del documento Talavera (<1980), atención a derramas extraordinarias y consumo energético elevado (101 kWh/m² año). (2) Tamaño 115 m² fuera del sweet spot (70-90). (3) €/m² 1.130 supera el 1.100 aceptable. Si negocias bajada a 119.000-122.000€ entrarías en €/m² ≤1.060 competitivo."
+      "slug": "uceda",
+      "nombre": "Uceda (Guadalajara)",
+      "ccaa": "Castilla-La Mancha",
+      "itp": 0.09,
+      "benchmarks": null,
+      "nota": "Mercado pequeño rural. No hay benchmarks suficientes (RealAdvisor/BYF no cubren)."
     }
   ]
 }
