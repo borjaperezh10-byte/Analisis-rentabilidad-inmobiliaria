@@ -691,6 +691,82 @@
         "verdictTexto": "€/m²=1666 riesgo, planta baja (okupas)"
       },
       "notas": "PROS: Seminuevo (2004), 90m² en sweet spot, gas natural + AC + 2 baños + suite + ascensor + comunidad muy baja (25€/mes). El equipamiento es excelente. CONTRAS: (1) PLANTA BAJA según filosofía Inversor Directivo = riesgo okupas. (2) €/m²=1.666 muy elevado (+57% vs RA, +22% vs BYF). Si negocias bajada a 125-130k€ entraría en zona aceptable. Solo 2 habitaciones limita perfil familiar."
+    },
+    {
+      "id": "111248275",
+      "url": "https://www.idealista.com/inmueble/111248275/",
+      "fechaAnalisis": "2026-05-11",
+      "localidad": "Talavera de la Reina",
+      "zona": "El Pilar - La Estación",
+      "direccion": "Calle Juventino Nieto Blanco, 9",
+      "tipo": "Piso",
+      "titulo": "Piso 1 hab en C/ Juventino Nieto Blanco",
+      "ciudadSlug": "talavera",
+      "datos": {
+        "precio": 95000,
+        "m2Construidos": 60,
+        "m2Utiles": 60,
+        "habitaciones": 1,
+        "banos": 1,
+        "planta": "2ª exterior con ascensor",
+        "ano": null,
+        "estado": "Buen estado, semi amueblado",
+        "calefaccion": "Caldera (2 años de antigüedad)",
+        "aireAcondicionado": true,
+        "ascensor": true,
+        "terraza": false,
+        "garaje": false,
+        "comunidadMes": 50,
+        "bajadaPrecio": null,
+        "agencia": "Particular (Sergio Duaz)"
+      },
+      "estimaciones": {
+        "alquilerMensual": 550,
+        "alquilerNotas": "1 hab semi amueblado con caldera nueva, AC y balcón. BYF marca 1hab=650€ pero RA marca estudio=452€. Estimación intermedia 550€. Premio por equipamiento bueno.",
+        "ibi": 238,
+        "vcSuelo": 35625,
+        "vcConstruccion": 11875,
+        "vacancia": 0.08,
+        "mantenimiento": 0.1
+      },
+      "calculo": {
+        "costeTotal": 106650,
+        "capitalPropio": 40150,
+        "cuotaMensual": 315.35,
+        "cuotaAnual": 3784.21,
+        "amortizacionAno1": 1814.01,
+        "interesesAno1": 1970.19,
+        "ingresosAnuales": 6600,
+        "gastosAnuales": 2526,
+        "irpfAnual": 128.26,
+        "beneficioNeto": 3945.74,
+        "cashflowAnual": 161.54,
+        "rentabilidadBruta": 0.0619,
+        "rentabilidadNeta": 0.037,
+        "rentabilidadFlujoCaja": 0.004,
+        "rentabilidadPagoDeuda": 0.0452,
+        "rentabilidadInflacion": 0.0473,
+        "rentabilidadTotal": 0.0965,
+        "roce": 0.004,
+        "multiplo": 194,
+        "calidadInversion": "Correcta",
+        "minimoAlquiler": 537,
+        "margenSeguridadMensual": 13,
+        "margenSeguridadPct": 0.0245
+      },
+      "filtros": {
+        "vsRA": 0.4951,
+        "vsBYF": 0.1642,
+        "verdict": "fail",
+        "verdictRazones": [
+          "60m² <70",
+          "año no indicado",
+          "€/m²=1583 riesgo",
+          "1 hab (<2)"
+        ],
+        "verdictTexto": "60m² <70, año no indicado, €/m²=1583 riesgo, 1 hab (<2)"
+      },
+      "notas": "PROS: Particular (sin comisión agencia), bien equipado (caldera 2 años, AC, balcón, ascensor), 2ª planta. Según BYF es la tipología con mejor rentabilidad de Talavera (9,34%). CONTRAS según doc Talavera: (1) 60 m² fuera del sweet spot (70-90). (2) Año NO INDICADO, bandera roja, pedirlo. (3) €/m²=1.583 muy elevado vs mediana RA y BYF. Si negocias a 78-82k€ entraría en zona razonable. (4) Solo 1 hab vs doc que recomienda 2D-3D. Tensión interesante: el documento penaliza tipologías que el mercado prima por rentabilidad."
     }
   ],
   "ciudades": [
