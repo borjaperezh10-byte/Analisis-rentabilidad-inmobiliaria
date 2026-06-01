@@ -4,7 +4,7 @@
 // Frontend puro: HTML/CSS/JS. Sin dependencias.
 // La contraseña se valida en cliente — protege contra accesos casuales.
 
-const PASSWORD = 'talavera2026';
+const PASSWORD = 'FerlandMendy23*';
 const STORAGE_KEY = 'inv_inmobil_auth_v1';
 
 // ---- HELPERS DE FORMATO ----
