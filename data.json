@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0",
-    "lastUpdated": "2026-06-01",
+    "lastUpdated": "2026-06-02",
     "user": "Borja P.",
     "ciudadActivaPorDefecto": "talavera"
   },
@@ -2207,6 +2207,156 @@
         "verdictTexto": "150m² >90, año no indicado, 3ª sin ascensor"
       },
       "notas": "€/m²=833 muy atractivo. 150m² reformado + 2 baños + orientación sur + calefacción. PERO: 150m² muy por encima del sweet spot (el alquiler por m² cae drásticamente en superficies grandes), 3ª SIN ASCENSOR, año no indicado, zona fuera del doc. €/m² bajo porque el mercado penaliza precisamente el tamaño excesivo y la falta de ascensor."
+    },
+    {
+      "id": "111434277",
+      "url": "https://www.idealista.com/inmueble/111434277/",
+      "fechaAnalisis": "2026-06-02",
+      "localidad": "Talavera de la Reina",
+      "zona": "El Pilar - La Estación",
+      "direccion": "Calle Juan Sebastián Elcano",
+      "tipo": "Piso",
+      "titulo": "Piso 73m² Elcano El Pilar (finca rehab, 1975)",
+      "ciudadSlug": "talavera",
+      "datos": {
+        "precio": 129900,
+        "m2Construidos": 73,
+        "m2Utiles": 73,
+        "habitaciones": 3,
+        "banos": 1,
+        "planta": "4ª exterior con ascensor",
+        "ano": 1975,
+        "estado": "Buen estado, finca rehabilitada",
+        "calefaccion": "No dispone",
+        "aireAcondicionado": false,
+        "ascensor": true,
+        "terraza": true,
+        "garaje": false,
+        "comunidadMes": 50,
+        "bajadaPrecio": null,
+        "agencia": "Veraz Inmobiliaria"
+      },
+      "estimaciones": {
+        "alquilerMensual": 580,
+        "alquilerNotas": "Mediana RA 3hab=505€, BYF=760€. Estimación 580€ por finca rehabilitada pero penalización por sin calefacción.",
+        "ibi": 325,
+        "vcSuelo": 48713,
+        "vcConstruccion": 16238,
+        "vacancia": 0.08,
+        "mantenimiento": 0.1
+      },
+      "calculo": {
+        "costeTotal": 145191,
+        "capitalPropio": 54261,
+        "cuotaMensual": 431.2,
+        "cuotaAnual": 5174.4,
+        "amortizacionAno1": 2480.43,
+        "interesesAno1": 2693.97,
+        "ingresosAnuales": 6960,
+        "gastosAnuales": 2553,
+        "irpfAnual": 80.1,
+        "beneficioNeto": 4326.9,
+        "cashflowAnual": -847.5,
+        "rentabilidadBruta": 0.0479,
+        "rentabilidadNeta": 0.0298,
+        "rentabilidadFlujoCaja": -0.0156,
+        "rentabilidadPagoDeuda": 0.0457,
+        "rentabilidadInflacion": 0.0479,
+        "rentabilidadTotal": 0.078,
+        "roce": -0.0156,
+        "multiplo": 250,
+        "calidadInversion": "Mala",
+        "minimoAlquiler": 657,
+        "margenSeguridadMensual": -77,
+        "margenSeguridadPct": -0.1328
+      },
+      "filtros": {
+        "vsRA": 0.68,
+        "vsBYF": 0.3081,
+        "verdict": "fail",
+        "verdictRazones": [
+          "año 1975 <1980",
+          "€/m²=1779 riesgo",
+          "sin calefacción"
+        ],
+        "verdictTexto": "año 1975 <1980, €/m²=1779 riesgo, sin calefacción"
+      },
+      "notas": "Misma calle que 111434354 analizado antes, mismo problema: año <1980 + €/m² muy elevado + sin calefacción. La finca rehabilitada con derrama pagada es positivo pero no compensa. Para entrar en zona viable habría que negociar a ~100k€, lo cual es improbable."
+    },
+    {
+      "id": "111522633",
+      "url": "https://www.idealista.com/inmueble/111522633/",
+      "fechaAnalisis": "2026-06-02",
+      "localidad": "Talavera de la Reina",
+      "zona": "El Pilar - La Estación",
+      "direccion": "Paseo del Muelle, 46",
+      "tipo": "Piso",
+      "titulo": "⚡ SUBASTA JUDICIAL Paseo Muelle 45k€ (sin hipoteca)",
+      "ciudadSlug": "talavera",
+      "datos": {
+        "precio": 45000,
+        "m2Construidos": 82,
+        "m2Utiles": 69,
+        "habitaciones": 3,
+        "banos": 1,
+        "planta": "2ª exterior con ascensor",
+        "ano": null,
+        "estado": "Sin posesión (subasta judicial)",
+        "calefaccion": "No indicada",
+        "aireAcondicionado": false,
+        "ascensor": true,
+        "terraza": true,
+        "garaje": false,
+        "comunidadMes": 50,
+        "bajadaPrecio": null,
+        "agencia": "Subasta BOE"
+      },
+      "estimaciones": {
+        "alquilerMensual": 575,
+        "alquilerNotas": "Estimación conservadora Paseo Muelle. Mediana RA 3hab=505€. Premio por zona y tamaño.",
+        "ibi": 113,
+        "vcSuelo": 16875,
+        "vcConstruccion": 5625,
+        "vacancia": 0.08,
+        "mantenimiento": 0.1
+      },
+      "calculo": {
+        "costeTotal": 63150,
+        "capitalPropio": 63150,
+        "cuotaMensual": 0,
+        "cuotaAnual": 0,
+        "amortizacionAno1": 0,
+        "interesesAno1": 0,
+        "ingresosAnuales": 6900,
+        "gastosAnuales": 2449,
+        "irpfAnual": 448.63,
+        "beneficioNeto": 4001.37,
+        "cashflowAnual": 4001.37,
+        "rentabilidadBruta": 0.1093,
+        "rentabilidadNeta": 0.0634,
+        "rentabilidadFlujoCaja": 0.0634,
+        "rentabilidadPagoDeuda": 0,
+        "rentabilidadInflacion": 0.0142,
+        "rentabilidadTotal": 0.0776,
+        "roce": 0.0634,
+        "multiplo": 110,
+        "calidadInversion": "Extraordinaria",
+        "minimoAlquiler": 241,
+        "margenSeguridadMensual": 334,
+        "margenSeguridadPct": 0.5809
+      },
+      "filtros": {
+        "vsRA": -0.4816,
+        "vsBYF": -0.5956,
+        "verdict": "warning",
+        "verdictRazones": [
+          "año no indicado",
+          "subasta judicial (sin visita, sin hipoteca)",
+          "riesgo ocupantes/deudas"
+        ],
+        "verdictTexto": "Subasta judicial — sin visita posible, 100% cash"
+      },
+      "notas": "⚡ CASO ESPECIAL — SUBASTA JUDICIAL BOE. Números extraordinarios: cashflow +4.000€/año, rent. bruta 10,93%, múltiplo 110. Zona objetivo (El Pilar), 82m² sweet spot, 2ª con ascensor, Paseo Muelle. REQUISITOS: (1) ~65k€ en liquidez total (sin hipoteca posible). (2) Abogado + procurador. (3) Sin visita previa al inmueble. (4) 40 días para pagar tras ganar la puja. RIESGOS: precio final de subasta puede ser superior a 45k si hay pujadores; estado real desconocido; posibles ocupantes (desahucio adicional); deudas de comunidad/IBI heredables. ACCIÓN: buscar en subastas.boe.es 'Paseo del Muelle 46 Talavera' para ver valor de tasación oficial y fecha de subasta. Solo viable si tienes liquidez suficiente y tolerancia al riesgo de subasta."
     }
   ],
   "ciudades": [
