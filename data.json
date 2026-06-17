@@ -4502,7 +4502,8 @@
             "impacto": "Horizonte ~2030"
           }
         ]
-      }
+      },
+      "modo": "larga_duracion"
     },
     {
       "slug": "uceda",
@@ -4510,7 +4511,8 @@
       "ccaa": "Castilla-La Mancha",
       "itp": 0.09,
       "benchmarks": null,
-      "nota": "Mercado pequeño rural. No hay benchmarks suficientes (RealAdvisor/BYF no cubren)."
+      "nota": "Mercado pequeño rural. No hay benchmarks suficientes (RealAdvisor/BYF no cubren).",
+      "modo": "larga_duracion"
     },
     {
       "slug": "cantabria",
@@ -4600,7 +4602,8 @@
             "impacto": "Principal riesgo a la baja"
           }
         ]
-      }
+      },
+      "modo": "vacacional"
     }
   ]
 }
