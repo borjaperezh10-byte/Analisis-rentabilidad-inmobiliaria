@@ -4323,86 +4323,6 @@
         "verdictTexto": "año no indicado, €/m²=1986 riesgo, sin calefacción"
       },
       "notas": "70m² justo en límite sweet spot, 3hab, 5ª con ascensor, amueblado, baño reformado. €/m²=1.986 MUY caro. Sin calefacción. Zona fuera doc. Precio excesivo para inversión."
-    },
-    {
-      "id": "111779563",
-      "url": "https://www.idealista.com/inmueble/111779563/",
-      "fechaAnalisis": "2026-06-17",
-      "localidad": "Castro-Urdiales",
-      "zona": "Sámano (Costa Oriental)",
-      "direccion": "Barrio Sámano, 256 — Urbanización Las Águilas",
-      "tipo": "Chalet",
-      "titulo": "Chalet independiente en Sámano (Castro-Urdiales) · CESIÓN DE CRÉDITO",
-      "ciudadSlug": "cantabria",
-      "modo": "vacacional",
-      "datos": {
-        "precio": 115000,
-        "m2Construidos": 242,
-        "m2Utiles": 237,
-        "habitaciones": 4,
-        "banos": 2,
-        "planta": "Chalet de 3 plantas (sótano garaje/trastero, baja, primera). Parcela 318 m²",
-        "ano": 2003,
-        "estado": "Segunda mano / buen estado (no visitable)",
-        "calefaccion": "No indicado",
-        "aireAcondicionado": false,
-        "ascensor": false,
-        "terraza": true,
-        "garaje": true,
-        "comunidadMes": 0,
-        "bajadaPrecio": null,
-        "agencia": "NPA Servicios Jurídicos"
-      },
-      "estimaciones": {
-        "alquilerMensual": null,
-        "alquilerNotas": "No se modela ingreso vacacional: es una cesión de crédito (NPL), no se adquiere el inmueble de inmediato. A 5 min de la playa de Brazomar.",
-        "ibi": null,
-        "vcSuelo": null,
-        "vcConstruccion": null,
-        "vacancia": null,
-        "mantenimiento": null,
-        "adr": null,
-        "ocupacion": null,
-        "minutosPlaya": 5
-      },
-      "calculo": {
-        "costeTotal": null,
-        "capitalPropio": null,
-        "cuotaMensual": null,
-        "cuotaAnual": null,
-        "amortizacionAno1": null,
-        "interesesAno1": null,
-        "ingresosAnuales": null,
-        "gastosAnuales": null,
-        "irpfAnual": null,
-        "beneficioNeto": null,
-        "cashflowAnual": null,
-        "rentabilidadBruta": null,
-        "rentabilidadNeta": null,
-        "rentabilidadFlujoCaja": null,
-        "rentabilidadPagoDeuda": null,
-        "rentabilidadInflacion": null,
-        "rentabilidadTotal": null,
-        "roce": null,
-        "multiplo": null,
-        "calidadInversion": "Descartada · NPL",
-        "minimoAlquiler": null,
-        "margenSeguridadMensual": null,
-        "margenSeguridadPct": null
-      },
-      "filtros": {
-        "vsRA": -0.7607,
-        "vsBYF": -0.8099,
-        "verdict": "fail",
-        "verdictRazones": [
-          "Cesión de crédito (NPL): no se puede hipotecar ni visitar",
-          "No se adquiere el inmueble de inmediato; depende de proceso judicial",
-          "Incompatible con financiación 70% y compra de disfrute",
-          "Castro-Urdiales: restricciones VUT (verificar con ayuntamiento)"
-        ],
-        "verdictTexto": "Cesión de crédito (NPL): sin hipoteca, sin visita, propiedad sujeta a proceso judicial"
-      },
-      "notas": "Operación de cesión de crédito / NPL dirigida a inversores de adjudicación judicial. €/m²=475 muy bajo precisamente por ello. Requeriría liquidez total, diligencia legal y asunción de riesgo procesal (plazos, terceros, posibles ocupantes). No encaja con el perfil disfrute + alquiler vacacional con hipoteca. Sobre el papel el activo sería interesante (242 m², 4 hab, parcela 318 m², garaje, 5 min playa Brazomar, año 2003), pero la vía de adquisición lo descarta."
     }
   ],
   "ciudades": [
@@ -4666,7 +4586,10 @@
           "distanciaPlayaMaxMin": 30,
           "distanciaPozueloMaxMin": 270,
           "legalidadVUT": "Decreto 50/2025 (vigente 25/07/2025): informe municipal de compatibilidad urbanistica; aprobacion de comunidad si VUT posterior a 03/04/2025 (no aplica en casa unifamiliar sin comunidad); Castro Urdiales restringe a planta baja/primera o edificio turistico; Santander con restricciones crecientes. Marcar VUT como VERIFICAR salvo evidencia clara.",
-          "fiscalidad": "ITP general 9% (2a residencia; NO 7% habitual); 10% sobre la parte >300.000 EUR. IRPF SIN reduccion del 60% (alquiler vacacional, no habitual)."
+          "fiscalidad": "ITP general 9% (2a residencia; NO 7% habitual); 10% sobre la parte >300.000 EUR. IRPF SIN reduccion del 60% (alquiler vacacional, no habitual).",
+          "cashflowMinAnual": -1000,
+          "objetivoFinanciero": "La hipoteca se paga sola (cashflow >= 0) o, como maximo, cashflow negativo de -1.000 EUR/ano.",
+          "zonaNota": "Cualquier municipio o pueblo pequeno a <=30 min en coche de la playa. No hace falta que sea una localidad conocida; las zonas listadas son solo orientativas, no excluyentes."
         },
         "catalizadores": [
           {

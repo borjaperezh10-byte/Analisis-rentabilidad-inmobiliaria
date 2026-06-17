@@ -1157,9 +1157,10 @@ function renderCriteriosVacacional(ciudad) {
                 ${item('Precio máx. recomendado', cri.precioAbsolutoMax != null ? fmt.eur(cri.precioAbsolutoMax) : '—')}
                 ${item('Distancia máx. a playa', cri.distanciaPlayaMaxMin != null ? '≤ ' + cri.distanciaPlayaMaxMin + ' min en coche' : '—')}
                 ${item('Distancia máx. desde Pozuelo', cri.distanciaPozueloMaxMin != null ? '≤ ' + Math.round(cri.distanciaPozueloMaxMin/60*10)/10 + ' h en coche' : '—')}
+                ${item('Objetivo de cashflow', cri.cashflowMinAnual != null ? 'La hipoteca se paga sola · mín. ' + fmt.eur(cri.cashflowMinAnual) + '/año' : '—')}
                 <div class="criterio-item" style="grid-column:1/-1;">
-                    <div class="criterio-label">Zonas objetivo</div>
-                    <div class="criterio-value" style="font-size:14px;line-height:1.5;">${zonas || '—'}</div>
+                    <div class="criterio-label">Zonas orientativas (no excluyentes)</div>
+                    <div class="criterio-value" style="font-size:14px;line-height:1.5;">${zonas || '—'}${cri.zonaNota ? '<br><span style="color:var(--ink-muted);font-style:italic;">' + cri.zonaNota + '</span>' : ''}</div>
                 </div>
             </div>
         </section>
@@ -1169,8 +1170,9 @@ function renderCriteriosVacacional(ciudad) {
             <ul class="filosofia-list">
                 <li><strong>Legalidad VUT</strong>: ${cri.legalidadVUT || 'Verificar normativa autonómica y municipal.'}</li>
                 <li><strong>Fiscalidad</strong>: ${cri.fiscalidad || 'ITP autonómico; sin reducción del 60% del IRPF.'}</li>
-                <li><strong>Enfoque mixto</strong>: en parte disfrute (2ª residencia), en parte renta. Un cashflow ligeramente negativo puede ser asumible si el uso propio compensa.</li>
+                <li><strong>Objetivo financiero</strong>: la hipoteca se paga sola con el alquiler vacacional (cashflow ≥ 0) o, como máximo, un cashflow negativo de −1.000 €/año. Por debajo de eso, se descarta.</li>
                 <li><strong>Casa unifamiliar</strong>: evita el requisito de aprobación de la comunidad de propietarios para la VUT.</li>
+                <li><strong>Zona libre</strong>: vale cualquier pueblo pequeño a ≤30 min de playa; no hace falta que sea una localidad conocida.</li>
                 <li><strong>Ingresos</strong>: ADR × ocupación estacional (fuerte en verano y Semana Santa, flojo en invierno). Sé prudente con la ocupación.</li>
             </ul>
         </section>
@@ -1925,17 +1927,23 @@ function calcularVacacional(i) {
     else if (em2 && cri.em2Aceptable && em2 > cri.em2Aceptable) razones.push(`€/m²=${Math.round(em2)} >${cri.em2Aceptable}`);
     if (cri.precioAbsolutoMax && i.precio > cri.precioAbsolutoMax) razones.push(`precio >${fmt.int(cri.precioAbsolutoMax)}€`);
     if (i.playaMin != null && cri.distanciaPlayaMaxMin && i.playaMin > cri.distanciaPlayaMaxMin) razones.push(`playa ${i.playaMin}min >${cri.distanciaPlayaMaxMin}`);
-    if (cashflowAnual < 0) razones.push('cashflow negativo');
+    // La zona/municipio NO es filtro: cualquier pueblo a <=30 min de playa es válido.
+
+    // Regla financiera: aceptable hasta cashflow -1.000 €/año (la hipoteca casi se paga sola)
+    const cashflowMin = (cri.cashflowMinAnual != null) ? cri.cashflowMinAnual : -1000;
+    const cashflowFalla = cashflowAnual < cashflowMin;
+    if (cashflowFalla) razones.push(`cashflow ${Math.round(cashflowAnual)}€/año (límite ${cashflowMin})`);
 
     let verdict = 'pass';
-    const fuerte = razones.some(r => /riesgo|precio >/.test(r));
+    const fuerte = cashflowFalla || razones.some(r => /riesgo|precio >/.test(r));
     if (fuerte || razones.length >= 3) verdict = 'fail';
     else if (razones.length > 0) verdict = 'warning';
 
-    let calidad = '—';
-    if (cashflowAnual > 0 && rentBruta >= 0.08) calidad = 'Buena';
-    else if (cashflowAnual >= 0) calidad = 'Correcta';
-    else calidad = 'Disfrute (cashflow neg.)';
+    // Calidad según el objetivo financiero de Borja
+    let calidad;
+    if (cashflowAnual >= 0) calidad = rentBruta >= 0.08 ? 'Buena · se paga sola' : 'Se paga sola';
+    else if (cashflowAnual >= cashflowMin) calidad = 'Correcta (cashflow dentro de -1.000€)';
+    else calidad = 'Fuera de objetivo (cashflow)';
 
     return {
         em2, costeTotal, capitalPropio, importeHip,
