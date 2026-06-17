@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0",
-    "lastUpdated": "2026-06-15",
+    "lastUpdated": "2026-06-17",
     "user": "Borja P.",
     "ciudadActivaPorDefecto": "talavera"
   },
@@ -4511,6 +4511,96 @@
       "itp": 0.09,
       "benchmarks": null,
       "nota": "Mercado pequeño rural. No hay benchmarks suficientes (RealAdvisor/BYF no cubren)."
+    },
+    {
+      "slug": "cantabria",
+      "nombre": "Cantabria (costa)",
+      "ccaa": "Cantabria",
+      "itp": 0.09,
+      "enfoque": "Disfrute + alquiler vacacional (VUT)",
+      "benchmarks": {
+        "fuentes": {
+          "realAdvisor": {
+            "em2Mediano": 1986,
+            "nota": "Media provincial RealAdvisor (jun 2026). La costa cotiza por encima."
+          },
+          "bestYieldFinder": {
+            "em2Mediano": 2500,
+            "nota": "Estimacion de oferta en costa. El alquiler relevante aqui es vacacional (ADR x ocupacion), no de larga duracion."
+          }
+        },
+        "referenciaM2PorMunicipio": [
+          {
+            "municipio": "Santander (pisos)",
+            "em2": 3171
+          },
+          {
+            "municipio": "Santander (casas)",
+            "em2": 2256
+          },
+          {
+            "municipio": "Castro Urdiales (Brazomar)",
+            "em2": 3404
+          },
+          {
+            "municipio": "Castro Urdiales (Samano)",
+            "em2": 1697
+          },
+          {
+            "municipio": "Torrelavega",
+            "em2": 1403
+          },
+          {
+            "municipio": "Reinosa",
+            "em2": 809
+          }
+        ],
+        "criterios": {
+          "zonas": [
+            "San Vicente de la Barquera",
+            "Comillas",
+            "Suances",
+            "Santillana del Mar",
+            "Noja",
+            "Isla",
+            "Santona",
+            "Laredo",
+            "Castro Urdiales",
+            "Santander",
+            "Torrelavega"
+          ],
+          "tipo": "Casa / chalet / unifamiliar",
+          "m2Min": null,
+          "m2Max": null,
+          "anoMin": null,
+          "habitaciones": "2-3 dormitorios",
+          "reforma": "Maximo basica/cosmetica",
+          "em2Ideal": 1800,
+          "em2Aceptable": 2300,
+          "em2Riesgo": 2600,
+          "alquilerObjetivoMin": null,
+          "alquilerObjetivoMax": null,
+          "precioAbsolutoMax": 300000,
+          "distanciaPlayaMaxMin": 30,
+          "distanciaPozueloMaxMin": 270,
+          "legalidadVUT": "Decreto 50/2025 (vigente 25/07/2025): informe municipal de compatibilidad urbanistica; aprobacion de comunidad si VUT posterior a 03/04/2025 (no aplica en casa unifamiliar sin comunidad); Castro Urdiales restringe a planta baja/primera o edificio turistico; Santander con restricciones crecientes. Marcar VUT como VERIFICAR salvo evidencia clara.",
+          "fiscalidad": "ITP general 9% (2a residencia; NO 7% habitual); 10% sobre la parte >300.000 EUR. IRPF SIN reduccion del 60% (alquiler vacacional, no habitual)."
+        },
+        "catalizadores": [
+          {
+            "nombre": "Turismo estacional de costa",
+            "ubicacion": "Costa cantabra",
+            "estado": "Activo",
+            "impacto": "Demanda vacacional alta en verano y Semana Santa"
+          },
+          {
+            "nombre": "Riesgo regulatorio VUT",
+            "ubicacion": "Toda Cantabria",
+            "estado": "Decreto 50/2025 + normas municipales",
+            "impacto": "Principal riesgo a la baja"
+          }
+        ]
+      }
     }
   ]
 }
