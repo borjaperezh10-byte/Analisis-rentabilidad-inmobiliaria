@@ -110,7 +110,8 @@
                     </button>
                 </div>
                 <p class="inbox-help">
-                    Espera a recibir un mensaje verde de confirmación. Vercel redespliega solo en ~30 segundos.
+                    Espera a recibir un mensaje verde de confirmación. Vercel redespliega solo en ~30 segundos.<br>
+                    También acepta un campo <code>"_eliminar": ["id1","id2"]</code> con IDs a borrar — Claude lo usa cuando detecta viviendas ya no disponibles en Idealista.
                 </p>
             </section>
 
@@ -207,7 +208,7 @@
                 <p class="view-sub">Analiza cualquier vivienda en tiempo real. Los resultados se actualizan al teclear.</p>
             </div>
 
-            <div class="calc-layout" id="calc-larga">
+            <div class="calc-layout">
                 <!-- COLUMNA IZQUIERDA: INPUTS -->
                 <div class="calc-col">
                     <section class="calc-section">
@@ -369,154 +370,6 @@
                             </button>
                         </div>
                         <p class="calc-help">"Guardar como vivienda" añade el análisis a tu lista y lo sube a GitHub (requiere configuración).</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CALCULADORA · MODO VACACIONAL (Cantabria y similares) -->
-            <div class="calc-layout" id="calc-vacacional" hidden>
-                <div class="calc-col">
-                    <section class="calc-section">
-                        <h3 class="calc-section-title">Vivienda</h3>
-                        <div class="calc-grid">
-                            <label><span>Localidad</span><input type="text" id="cv-localidad" placeholder="Ej: San Vicente de la Barquera"></label>
-                            <label><span>Zona / municipio</span><input type="text" id="cv-zona" placeholder="Ej: Comillas"></label>
-                            <label><span>URL Idealista (opcional)</span><input type="text" id="cv-url" placeholder="https://www.idealista.com/inmueble/..."></label>
-                            <label><span>Tipo</span>
-                                <select id="cv-tipo">
-                                    <option value="Casa">Casa</option>
-                                    <option value="Chalet">Chalet</option>
-                                    <option value="Casa de pueblo">Casa de pueblo</option>
-                                    <option value="Piso">Piso</option>
-                                </select>
-                            </label>
-                            <label><span>Año construcción</span><input type="number" id="cv-ano" placeholder="Ej: 1985" min="1800" max="2030"></label>
-                            <label><span>Habitaciones</span><input type="number" id="cv-hab" min="0" max="10" value="3"></label>
-                            <label><span>Baños</span><input type="number" id="cv-banos" min="0" max="10" value="1"></label>
-                            <label><span>Min. a la playa (coche)</span><input type="number" id="cv-playa" min="0" max="180" placeholder="Ej: 10"><span class="suffix">min</span></label>
-                        </div>
-                    </section>
-
-                    <section class="calc-section">
-                        <h3 class="calc-section-title">Precio y dimensiones</h3>
-                        <div class="calc-grid">
-                            <label><span>Precio (€)</span><input type="number" id="cv-precio" placeholder="Ej: 220000" min="0"></label>
-                            <label><span>m² construidos</span><input type="number" id="cv-m2c" placeholder="Ej: 110" min="0"></label>
-                            <label><span>m² útiles (opcional)</span><input type="number" id="cv-m2u" min="0"></label>
-                            <label><span>Reforma estimada (€)</span><input type="number" id="cv-reforma" min="0" value="0" placeholder="Solo básica/cosmética"></label>
-                        </div>
-                    </section>
-
-                    <section class="calc-section">
-                        <h3 class="calc-section-title">Hipoteca</h3>
-                        <div class="calc-grid">
-                            <label><span>% Financiado</span><input type="number" id="cv-fin" min="0" max="100" step="1" value="70"><span class="suffix">%</span></label>
-                            <label><span>Tipo interés anual</span><input type="number" id="cv-tipo-interes" min="0" max="100" step="0.01" value="3"><span class="suffix">%</span></label>
-                            <label><span>Plazo (años)</span><input type="number" id="cv-plazo" min="1" max="40" value="25"></label>
-                            <label><span>ITP / IVA</span><input type="number" id="cv-itp" min="0" max="100" step="0.1" value="9"><span class="suffix">%</span></label>
-                        </div>
-                    </section>
-
-                    <section class="calc-section">
-                        <h3 class="calc-section-title">Gastos compra</h3>
-                        <div class="calc-grid">
-                            <label><span>Notaría/registro (€)</span><input type="number" id="cv-notaria" min="0" value="1500"></label>
-                            <label><span>Tasación (€)</span><input type="number" id="cv-tasacion" min="0" value="400"></label>
-                            <label><span>Gestoría (€)</span><input type="number" id="cv-gestoria" min="0" value="500"></label>
-                            <label><span>Comisión agencia (€)</span><input type="number" id="cv-agencia" min="0" value="0"></label>
-                            <label><span>Mobiliario/equipamiento (€)</span><input type="number" id="cv-mobiliario" min="0" value="8000" placeholder="VUT amueblada"></label>
-                            <label><span>Otros (€)</span><input type="number" id="cv-otros" min="0" value="0"></label>
-                        </div>
-                    </section>
-
-                    <section class="calc-section">
-                        <h3 class="calc-section-title">Explotación vacacional (VUT)</h3>
-                        <div class="calc-grid">
-                            <label><span>ADR · tarifa media (€/noche)</span><input type="number" id="cv-adr" min="0" placeholder="Ej: 120"></label>
-                            <label><span>Ocupación media anual</span><input type="number" id="cv-ocupacion" min="0" max="100" step="1" placeholder="Ej: 45"><span class="suffix">%</span></label>
-                            <label><span>Comisión gestión</span><input type="number" id="cv-gestion" min="0" max="100" step="1" value="20"><span class="suffix">%</span></label>
-                            <label><span>Limpieza (€/año)</span><input type="number" id="cv-limpieza" min="0" value="1500"></label>
-                            <label><span>Suministros (€/año)</span><input type="number" id="cv-suministros" min="0" value="1800" placeholder="Luz, agua, internet"></label>
-                            <label><span>IBI anual (€)</span><input type="number" id="cv-ibi" min="0" value="450"></label>
-                            <label><span>Seguro (€/año)</span><input type="number" id="cv-seguro" min="0" value="350"></label>
-                            <label><span>Comunidad (€/mes)</span><input type="number" id="cv-comunidad" min="0" value="0"></label>
-                            <label><span>Mantenimiento</span><input type="number" id="cv-mantenimiento" min="0" max="100" step="1" value="10"><span class="suffix">%</span></label>
-                            <label><span>Tasa turística/otros (€/año)</span><input type="number" id="cv-tasa" min="0" value="0"></label>
-                            <label><span>Inflación anual</span><input type="number" id="cv-inflacion" min="0" max="100" step="0.1" value="2"><span class="suffix">%</span></label>
-                        </div>
-                    </section>
-
-                    <section class="calc-section">
-                        <h3 class="calc-section-title">Fiscalidad (IRPF)</h3>
-                        <div class="calc-grid">
-                            <label><span>IRPF tramo</span><input type="number" id="cv-irpf" min="0" max="100" step="1" value="30"><span class="suffix">%</span></label>
-                            <label><span>Valor catastral suelo (€)</span><input type="number" id="cv-vc-suelo" min="0" placeholder="Estimo 37,5% del precio"></label>
-                            <label><span>Valor catastral construcción (€)</span><input type="number" id="cv-vc-const" min="0" placeholder="Estimo 12,5% del precio"></label>
-                        </div>
-                        <p class="calc-help">En vacacional NO aplica la reducción del 60% del IRPF (es solo para alquiler de vivienda habitual).</p>
-                    </section>
-                </div>
-
-                <div class="calc-col calc-col-results">
-                    <div class="calc-results-sticky">
-                        <div class="calc-verdict-banner" id="cv-verdict-banner">
-                            <span id="cv-verdict-icon">—</span>
-                            <span id="cv-verdict-label">Rellena precio, m², ADR y ocupación</span>
-                        </div>
-
-                        <div class="calc-result-block">
-                            <h4>Inversión</h4>
-                            <div class="calc-result-row"><span>Coste total</span><strong id="rv-coste-total">—</strong></div>
-                            <div class="calc-result-row"><span>Capital propio</span><strong id="rv-capital">—</strong></div>
-                            <div class="calc-result-row"><span>€/m²</span><strong id="rv-em2">—</strong></div>
-                        </div>
-
-                        <div class="calc-result-block">
-                            <h4>Hipoteca</h4>
-                            <div class="calc-result-row"><span>Cuota mensual</span><strong id="rv-cuota">—</strong></div>
-                            <div class="calc-result-row"><span>Amortización año 1</span><strong id="rv-amort">—</strong></div>
-                            <div class="calc-result-row"><span>Intereses año 1</span><strong id="rv-int">—</strong></div>
-                        </div>
-
-                        <div class="calc-result-block">
-                            <h4>Explotación anual</h4>
-                            <div class="calc-result-row"><span>Noches ocupadas</span><strong id="rv-noches">—</strong></div>
-                            <div class="calc-result-row"><span>Ingreso bruto</span><strong id="rv-ingresos">—</strong></div>
-                            <div class="calc-result-row"><span>Gastos explotación</span><strong id="rv-gastos">—</strong></div>
-                            <div class="calc-result-row"><span>IRPF</span><strong id="rv-irpf">—</strong></div>
-                            <div class="calc-result-row"><span>Beneficio neto</span><strong id="rv-beneficio">—</strong></div>
-                            <div class="calc-result-row big"><span>Cashflow</span><strong id="rv-cashflow">—</strong></div>
-                        </div>
-
-                        <div class="calc-result-block">
-                            <h4>Rentabilidades</h4>
-                            <div class="calc-result-row"><span>Bruta (ingreso/coste)</span><strong id="rv-bruta">—</strong></div>
-                            <div class="calc-result-row"><span>Neta (post-IRPF)</span><strong id="rv-neta">—</strong></div>
-                            <div class="calc-result-row"><span>Por flujo de caja</span><strong id="rv-flujo">—</strong></div>
-                            <div class="calc-result-row"><span>Por pago de deuda</span><strong id="rv-deuda">—</strong></div>
-                            <div class="calc-result-row"><span>Por inflación</span><strong id="rv-inflacion">—</strong></div>
-                            <div class="calc-result-row big"><span>TOTAL</span><strong id="rv-total">—</strong></div>
-                        </div>
-
-                        <div class="calc-result-block">
-                            <h4>Contexto vacacional</h4>
-                            <div class="calc-result-row"><span>Ingreso medio mensual</span><strong id="rv-ing-mes">—</strong></div>
-                            <div class="calc-result-row"><span>Tarifa implícita/noche</span><strong id="rv-adr-efectivo">—</strong></div>
-                            <div class="calc-result-row"><span>Múltiplo coste/ingreso mes</span><strong id="rv-multiplo">—</strong></div>
-                            <div class="calc-result-row big"><span>Legalidad VUT</span><strong id="rv-vut">Verificar</strong></div>
-                        </div>
-
-                        <div class="calc-actions">
-                            <button id="btn-calcv-clear" class="btn-ghost">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                Limpiar
-                            </button>
-                            <button id="btn-calcv-save" class="btn-primary">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                                Guardar como vivienda
-                            </button>
-                        </div>
-                        <p class="calc-help">El veredicto vacacional combina €/m², cashflow y la viabilidad VUT (que siempre debes confirmar con el ayuntamiento).</p>
                     </div>
                 </div>
             </div>

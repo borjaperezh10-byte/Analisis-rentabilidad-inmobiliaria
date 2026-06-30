@@ -762,6 +762,12 @@ input, select { font: inherit; color: inherit; }
     margin-top: 2px;
     letter-spacing: 0.01em;
 }
+.card-dates {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-top: 3px;
+    letter-spacing: 0.01em;
+}
 .card-verdict {
     font-size: 11px;
     font-weight: 600;

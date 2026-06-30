@@ -1,51 +1,43 @@
-# InmoMetrics by Borja Pérez · v3
+# InmoMetrics by Borja Pérez · v4
 
-Dashboard privado de análisis de inversiones inmobiliarias. Multi-ciudad, con calculadora propia y auto-publicación a GitHub.
+Mejoras sobre v3: fechas visibles, orden por fecha corregido, y eliminación de viviendas ya no disponibles en Idealista.
 
-## Novedades v3
+## Qué cambia en esta versión
 
-- 🏙️ **Multi-ciudad**: selector en el header. Cada ciudad tiene sus propios benchmarks y criterios.
-- 🧮 **Vista Calculadora**: introduce datos manualmente, ve los resultados en tiempo real. Botón para guardar como vivienda y subir a GitHub.
-- 📅 **Orden por fecha de análisis** (por defecto, viviendas más recientes arriba).
-- 💬 **Motivo del verdict**: las tarjetas marcadas como "Zona gris" o "Descartada" muestran el motivo en 1-2 líneas.
-- 🎨 **Branding**: InmoMetrics by Borja Pérez.
-- 🧹 KPI "Inversión total potencial" retirado.
+### 1. Fechas visibles
+- Cada tarjeta muestra ahora "Analizado [fecha]" bajo la zona, y "· Publicado [fecha]" si esa vivienda tiene `fechaPublicacionIdealista`.
+- El modal de detalle añade ambas fechas en la sección "Datos del inmueble".
+- `fechaPublicacionIdealista` es un campo **opcional** a nivel de vivienda (mismo nivel que `fechaAnalisis`). Si no se conoce, simplemente no se incluye y no se muestra nada.
 
-## Cómo añadir una ciudad nueva
+### 2. Orden por fecha corregido
+El campo `fechaAnalisis` nunca se mostraba en pantalla, así que era imposible comprobar a simple vista si el orden era correcto. Además, el comparador se ha hecho más robusto: ahora convierte las fechas a timestamps reales y cualquier vivienda con fecha ausente o mal formada se manda al final en vez de descolocar el resto.
 
-1. Pasa a Claude por chat el nombre de la ciudad.
-2. Claude busca RealAdvisor + BestYieldFinder para esa ciudad.
-3. Junto con tu documento de criterios para esa ciudad, te devuelve un objeto JSON con la estructura completa de la nueva ciudad.
-4. Lo pegas en el dashboard usando "Importar análisis" (acepta tanto viviendas sueltas como objetos de ciudad).
+### 3. Eliminación de viviendas no disponibles
+El panel **"Importar análisis"** ahora acepta, además de las viviendas de siempre, un campo `_eliminar` con una lista de IDs a borrar:
 
-⚠️ Por simplicidad inicial, para añadir ciudad puedes pedirme directamente que actualice el `data.json` completo y subirlo manualmente al repo. Más adelante automatizamos la importación de ciudades desde el panel.
+```json
+{
+  "viviendas": [ ... nuevas o actualizadas ... ],
+  "_eliminar": ["111234567", "108999999"]
+}
+```
 
-## Setup inicial
+También puedes pegar **solo** el campo `_eliminar` sin viviendas, para una limpieza pura:
 
-Idéntico al de v2: ver historial de chats si lo necesitas. En resumen: generas un Personal Access Token en GitHub con permisos de Contents Read/Write sobre tu repo, lo introduces en la vista "Configuración" (icono engranaje), pruebas la conexión y guardas.
+```json
+{ "_eliminar": ["111234567", "108999999"] }
+```
 
-## Calculadora
+Claude usará esto automáticamente cada vez que detecte, al comprobar tus viviendas existentes contra Idealista, que alguna ya no está disponible (anuncio retirado o 404).
 
-Vista dedicada para meter datos a mano:
-- **Columna izquierda**: formularios con los inputs (precio, m², año, hipoteca, ITP, gastos, alquiler, IRPF...)
-- **Columna derecha**: resultados en tiempo real con verdict según los criterios de la ciudad activa
+## Resto de funcionalidades
 
-Acciones:
-- **Limpiar**: vacía todos los campos
-- **Guardar como vivienda**: añade el análisis a tu lista y lo sube a GitHub. Funciona aunque no haya URL de Idealista (genera un id manual).
+Igual que v3: selector de ciudad, calculadora manual, configuración de GitHub vía token, panel de URLs pendientes, etc. Ver el resto de este documento en versiones anteriores si necesitas repasar el setup inicial (token de GitHub, despliegue en Vercel).
 
-## Estructura de datos
+## Cómo desplegar esta actualización
 
-`data.json` ahora tiene la siguiente raíz:
-- `meta` — versión, fecha, ciudad activa por defecto
-- `parametros` — parámetros generales (hipoteca, fiscalidad, estimación)
-- `ciudades[]` — array de ciudades con `slug`, `nombre`, `ccaa`, `itp`, `benchmarks` (RealAdvisor + BYF + criterios + catalizadores)
-- `viviendas[]` — lista de viviendas, cada una con `ciudadSlug` para asignar a su ciudad
+Sustituye en tu repositorio de GitHub estos 3 archivos: `index.html`, `app.js`, `styles.css`. No toques `data.json` ni `vercel.json`. Vercel redeploya solo en ~30 segundos.
 
 ## Coste
 
-Total: **0 €**. Vercel + GitHub gratis.
-
-## Si algo no funciona
-
-Capturas o errores → al chat con Claude.
+Sigue siendo **0 €**.
