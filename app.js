@@ -4,7 +4,7 @@
 // Frontend puro: HTML/CSS/JS. Sin dependencias.
 // La contraseña se valida en cliente — protege contra accesos casuales.
 
-const PASSWORD = 'talavera2026';
+const PASSWORD = 'FerlandMendy23*';
 const STORAGE_KEY = 'inv_inmobil_auth_v1';
 
 // ---- HELPERS DE FORMATO ----
@@ -29,19 +29,9 @@ const fmt = {
     date: (v) => {
         if (!v) return '—';
         const d = new Date(v);
-        if (isNaN(d.getTime())) return '—';
         return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
     },
 };
-
-// Convierte cualquier valor de fecha a timestamp numérico para poder ordenar
-// con seguridad. Si falta o es inválida, se trata como "muy antigua" para que
-// quede siempre al final al ordenar por "más recientes primero".
-function parseDateSafe(v) {
-    if (!v) return -Infinity;
-    const t = new Date(v).getTime();
-    return Number.isNaN(t) ? -Infinity : t;
-}
 
 // ---- ESTADO ----
 let state = {
@@ -460,7 +450,7 @@ function getFilteredViviendas() {
     viviendas.sort((a, b) => {
         switch (state.sortBy) {
             case 'fechaAnalisis':
-                return parseDateSafe(b.fechaAnalisis) - parseDateSafe(a.fechaAnalisis);
+                return (b.fechaAnalisis || '').localeCompare(a.fechaAnalisis || '');
             case 'cashflow':           return (b.calculo.cashflowAnual ?? -Infinity) - (a.calculo.cashflowAnual ?? -Infinity);
             case 'rentabilidadBruta':  return (b.calculo.rentabilidadBruta ?? 0) - (a.calculo.rentabilidadBruta ?? 0);
             case 'margenSeguridad':    return (b.calculo.margenSeguridadPct ?? -Infinity) - (a.calculo.margenSeguridadPct ?? -Infinity);
@@ -483,6 +473,13 @@ function renderAll() {
     renderPendientes();
     renderBenchmarks();
     renderCriterios();
+    renderCalculadora();
+}
+
+// Devuelve 'vacacional' o 'larga' según la ciudad activa
+function cityModo() {
+    const c = getActiveCity();
+    return c && c.modo === 'vacacional' ? 'vacacional' : 'larga';
 }
 
 function setupCitySelector() {
@@ -498,6 +495,7 @@ function setupCitySelector() {
         renderViviendas();
         renderBenchmarks();
         renderCriterios();
+        renderCalculadora();
     };
 }
 
@@ -586,7 +584,6 @@ function renderCard(v) {
                 <div>
                     <h3 class="card-title">${v.titulo}</h3>
                     <p class="card-zone">${v.localidad} · ${v.zona}</p>
-                    <p class="card-dates">Analizado ${fmt.date(v.fechaAnalisis)}${v.fechaPublicacionIdealista ? ' · Publicado ' + fmt.date(v.fechaPublicacionIdealista) : ''}</p>
                 </div>
                 <span class="card-verdict">${verdictText}</span>
             </div>
@@ -687,8 +684,6 @@ function renderModalContent(v) {
                 <div class="modal-item"><span class="modal-item-label">Aire acond.</span><span class="modal-item-value">${d.aireAcondicionado ? 'Sí' : 'No'}</span></div>
                 <div class="modal-item"><span class="modal-item-label">Comunidad/mes</span><span class="modal-item-value">${fmt.eur(d.comunidadMes)}</span></div>
                 ${d.bajadaPrecio ? `<div class="modal-item"><span class="modal-item-label">Bajada precio</span><span class="modal-item-value pos">${fmt.pct(-d.bajadaPrecio)}</span></div>` : ''}
-                <div class="modal-item"><span class="modal-item-label">Fecha de análisis</span><span class="modal-item-value">${fmt.date(v.fechaAnalisis)}</span></div>
-                ${v.fechaPublicacionIdealista ? `<div class="modal-item"><span class="modal-item-label">Publicado en Idealista</span><span class="modal-item-value">${fmt.date(v.fechaPublicacionIdealista)}</span></div>` : ''}
             </div>
         </div>
 
@@ -789,6 +784,12 @@ function renderBenchmarks() {
             </div>
         `;
         benchView.innerHTML = noBenchHTML;
+        return;
+    }
+
+    // Rama vacacional: estructura de benchmarks distinta (sin tablas por tamaño ni scoring)
+    if (cityModo() === 'vacacional') {
+        renderBenchmarksVacacional(ciudad);
         return;
     }
 
@@ -913,12 +914,92 @@ function buildBenchmarksTemplate(nombreCiudad) {
     `;
 }
 
+// Benchmarks para ciudades en modo vacacional (medias + €/m² por municipio + catalizadores)
+function renderBenchmarksVacacional(ciudad) {
+    const benchView = document.getElementById('view-benchmarks');
+    const b = ciudad.benchmarks || {};
+    const ra = b.fuentes?.realAdvisor || {};
+    const byf = b.fuentes?.bestYieldFinder || {};
+    const muni = b.referenciaM2PorMunicipio || [];
+    const cri = b.criterios || {};
+    const cats = b.catalizadores || [];
+
+    const muniHTML = muni.length ? muni.map(m => `
+        <div class="calle-item">
+            <span class="calle-item-name">${m.municipio}</span>
+            <span class="calle-item-em2">${fmt.em2(m.em2)}</span>
+        </div>`).join('') : '<p style="color:var(--ink-muted);font-style:italic;">Sin datos por municipio.</p>';
+
+    const catsHTML = cats.length ? cats.map(c => `
+        <div class="catalizador">
+            <h4>${c.nombre}</h4>
+            <div class="catalizador-loc">${c.ubicacion || ''}</div>
+            <div class="catalizador-state">${c.estado || ''}</div>
+            <div class="catalizador-impact">${c.impacto || ''}</div>
+        </div>`).join('') : '';
+
+    benchView.innerHTML = `
+        <div class="view-header">
+            <h2 class="view-title">Benchmarks · ${ciudad.nombre}</h2>
+            <p class="view-sub">Enfoque vacacional · referencia de precios y contexto de mercado</p>
+        </div>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Referencia de precio (€/m²)</h3>
+            <p class="bench-card-sub">En vacacional la rentabilidad sale del ADR × ocupación, no del alquiler de larga duración. El €/m² acota el precio de entrada.</p>
+            <div class="source-grid">
+                <div class="source-box source-ra">
+                    <span class="source-tag">RealAdvisor</span>
+                    <p class="source-desc">${ra.nota || 'Conservador'}</p>
+                    <div class="source-metrics">
+                        <div><span>€/m² mediano</span><strong>${fmt.em2(ra.em2Mediano)}</strong></div>
+                    </div>
+                </div>
+                <div class="source-box source-byf">
+                    <span class="source-tag">Oferta costa</span>
+                    <p class="source-desc">${byf.nota || 'Estimación de anuncios'}</p>
+                    <div class="source-metrics">
+                        <div><span>€/m² estimado</span><strong>${fmt.em2(byf.em2Mediano)}</strong></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">€/m² por municipio</h3>
+            <p class="bench-card-sub">Ideal ≤ ${fmt.int(cri.em2Ideal)} € · Aceptable ≤ ${fmt.int(cri.em2Aceptable)} € · Riesgo > ${fmt.int(cri.em2Riesgo)} €</p>
+            <div class="calles-grid">${muniHTML}</div>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Legalidad del alquiler vacacional (VUT)</h3>
+            <p class="bench-card-sub">Filtro clave · verificar siempre con el ayuntamiento del municipio</p>
+            <p style="color:var(--ink-muted);font-size:14px;line-height:1.6;">${cri.legalidadVUT || 'Consultar normativa autonómica y municipal.'}</p>
+        </section>
+        ${cats.length ? `
+        <section class="bench-card">
+            <h3 class="bench-card-title">Contexto y catalizadores</h3>
+            <p class="bench-card-sub">Factores que mueven la demanda turística</p>
+            <div class="catalizadores-grid">${catsHTML}</div>
+        </section>` : ''}
+    `;
+}
+
 // =========================================================================
 // VISTA CRITERIOS
 // =========================================================================
 function renderCriterios() {
     const ciudad = getActiveCity();
     const view = document.getElementById('view-criterios');
+
+    // Rama vacacional: layout propio
+    if (cityModo() === 'vacacional') {
+        renderCriteriosVacacional(ciudad);
+        return;
+    }
+
+    // Larga duración: restaurar el layout estático si fue reemplazado por la vista vacacional
+    if (!document.getElementById('criterios-talavera')) {
+        view.innerHTML = buildCriteriosLargaTemplate();
+    }
+
     const titleEl = view.querySelector('.view-title');
     if (titleEl) titleEl.textContent = `Criterios · ${ciudad ? ciudad.nombre : ''}`;
 
@@ -1012,6 +1093,96 @@ function renderParamsGenerales() {
             <div class="criterio-value">${fmt.pctNoSign(params.estimacion.inflacion)}</div>
         </div>
     `;
+}
+
+// Reproduce el layout estático original de la vista Criterios (larga duración)
+function buildCriteriosLargaTemplate() {
+    return `
+        <div class="view-header">
+            <h2 class="view-title">Criterios de inversión</h2>
+            <p class="view-sub">Filosofía Inversor Directivo + criterios específicos de la ciudad</p>
+        </div>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Filtros duros</h3>
+            <div id="criterios-talavera" class="criterios-list"></div>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Filosofía Inversor Directivo</h3>
+            <ul class="filosofia-list">
+                <li><strong>Margen de seguridad ≥25%</strong>: el alquiler puede caer un 25% y seguir generando cashflow positivo.</li>
+                <li><strong>Zonas C en escala ABCD</strong>: mejor binomio rentabilidad/riesgo. Barrios obreros estables.</li>
+                <li><strong>Pisos antiguos (&gt;15 años)</strong>: las casas nuevas no rentan. Pero atención a derramas en &gt;30 años.</li>
+                <li><strong>Evitar plantas bajas</strong>: las preferidas de los okupas (probabilidad real 0,14% pero medida prudente).</li>
+                <li><strong>Vacancia mín 8% · mantenimiento 10%</strong>: cálculos prudentes, no optimistas.</li>
+                <li><strong>Rentabilidad bruta &gt;6%</strong>: por debajo, el cashflow es precario. Umbral de descarte rápido.</li>
+                <li><strong>Reformas integrales</strong>: pagar máximo el 50% del valor post-reforma. Si no, no compensa el dolor de cabeza.</li>
+                <li><strong>Probabilidad Nike</strong>: los chollos están al inicio (precio mal puesto) o tras meses sin moverse (vendedor cansado).</li>
+                <li><strong>Preferir &lt;150k€</strong>: rango con mayor concentración de oportunidades.</li>
+            </ul>
+        </section>
+        <section class="bench-card">
+            <h3 class="bench-card-title">Parámetros de cálculo</h3>
+            <div id="criterios-params" class="params-grid"></div>
+        </section>
+    `;
+}
+
+// Vista Criterios para ciudades en modo vacacional
+function renderCriteriosVacacional(ciudad) {
+    const view = document.getElementById('view-criterios');
+    const cri = ciudad?.benchmarks?.criterios || {};
+    const zonas = (cri.zonas || []).join(' · ');
+
+    const item = (label, value) => `
+        <div class="criterio-item">
+            <div class="criterio-label">${label}</div>
+            <div class="criterio-value">${value}</div>
+        </div>`;
+
+    view.innerHTML = `
+        <div class="view-header">
+            <h2 class="view-title">Criterios · ${ciudad.nombre}</h2>
+            <p class="view-sub">${ciudad.enfoque || 'Disfrute + alquiler vacacional'}</p>
+        </div>
+
+        <section class="bench-card">
+            <h3 class="bench-card-title">Filtros de búsqueda · vacacional</h3>
+            <div class="criterios-list">
+                ${item('Tipo de inmueble', cri.tipo || '—')}
+                ${item('Habitaciones', cri.habitaciones || '—')}
+                ${item('Reforma', cri.reforma || '—')}
+                ${item('€/m² ideal', cri.em2Ideal != null ? '≤ ' + fmt.int(cri.em2Ideal) + ' €' : '—')}
+                ${item('€/m² aceptable', cri.em2Aceptable != null ? '≤ ' + fmt.int(cri.em2Aceptable) + ' €' : '—')}
+                ${item('€/m² zona riesgo', cri.em2Riesgo != null ? '> ' + fmt.int(cri.em2Riesgo) + ' €' : '—')}
+                ${item('Precio máx. recomendado', cri.precioAbsolutoMax != null ? fmt.eur(cri.precioAbsolutoMax) : '—')}
+                ${item('Distancia máx. a playa', cri.distanciaPlayaMaxMin != null ? '≤ ' + cri.distanciaPlayaMaxMin + ' min en coche' : '—')}
+                ${item('Distancia máx. desde Pozuelo', cri.distanciaPozueloMaxMin != null ? '≤ ' + Math.round(cri.distanciaPozueloMaxMin/60*10)/10 + ' h en coche' : '—')}
+                ${item('Objetivo de cashflow', cri.cashflowMinAnual != null ? 'La hipoteca se paga sola · mín. ' + fmt.eur(cri.cashflowMinAnual) + '/año' : '—')}
+                <div class="criterio-item" style="grid-column:1/-1;">
+                    <div class="criterio-label">Zonas orientativas (no excluyentes)</div>
+                    <div class="criterio-value" style="font-size:14px;line-height:1.5;">${zonas || '—'}${cri.zonaNota ? '<br><span style="color:var(--ink-muted);font-style:italic;">' + cri.zonaNota + '</span>' : ''}</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bench-card">
+            <h3 class="bench-card-title">Legalidad VUT y fiscalidad</h3>
+            <ul class="filosofia-list">
+                <li><strong>Legalidad VUT</strong>: ${cri.legalidadVUT || 'Verificar normativa autonómica y municipal.'}</li>
+                <li><strong>Fiscalidad</strong>: ${cri.fiscalidad || 'ITP autonómico; sin reducción del 60% del IRPF.'}</li>
+                <li><strong>Objetivo financiero</strong>: la hipoteca se paga sola con el alquiler vacacional (cashflow ≥ 0) o, como máximo, un cashflow negativo de −1.000 €/año. Por debajo de eso, se descarta.</li>
+                <li><strong>Casa unifamiliar</strong>: evita el requisito de aprobación de la comunidad de propietarios para la VUT.</li>
+                <li><strong>Zona libre</strong>: vale cualquier pueblo pequeño a ≤30 min de playa; no hace falta que sea una localidad conocida.</li>
+                <li><strong>Ingresos</strong>: ADR × ocupación estacional (fuerte en verano y Semana Santa, flojo en invierno). Sé prudente con la ocupación.</li>
+            </ul>
+        </section>
+
+        <section class="bench-card">
+            <h3 class="bench-card-title">Parámetros de cálculo</h3>
+            <div id="criterios-params" class="params-grid"></div>
+        </section>
+    `;
+    renderParamsGenerales();
 }
 
 // =========================================================================
@@ -1257,24 +1428,25 @@ function setupImportPanel() {
             return;
         }
 
-        // Aceptamos: array de viviendas, objeto con "viviendas", objeto con "_eliminar"
-        // (lista de IDs a borrar), o una combinación de "viviendas" + "_eliminar".
-        let nuevasViviendas = [];
-        let idsEliminar = [];
+        // Aceptamos dos formas: array de viviendas, o objeto con campo "viviendas"
+        let nuevasViviendas;
         if (Array.isArray(parsed)) {
             nuevasViviendas = parsed;
-        } else if (parsed && typeof parsed === 'object') {
-            if (Array.isArray(parsed.viviendas)) nuevasViviendas = parsed.viviendas;
-            if (Array.isArray(parsed._eliminar)) idsEliminar = parsed._eliminar.map(String);
-        }
-
-        if (nuevasViviendas.length === 0 && idsEliminar.length === 0) {
+        } else if (parsed.viviendas && Array.isArray(parsed.viviendas)) {
+            nuevasViviendas = parsed.viviendas;
+        } else {
             status.className = 'inbox-status error';
-            status.textContent = 'El JSON debe ser un array de viviendas, un objeto con "viviendas", y/o un campo "_eliminar" con IDs a borrar.';
+            status.textContent = 'El JSON debe ser un array de viviendas o un objeto con campo "viviendas".';
             return;
         }
 
-        // Validar mínimamente: cada vivienda nueva debe tener al menos id
+        if (nuevasViviendas.length === 0) {
+            status.className = 'inbox-status error';
+            status.textContent = 'El JSON no contiene viviendas.';
+            return;
+        }
+
+        // Validar mínimamente: cada vivienda debe tener al menos id
         const sinId = nuevasViviendas.filter(v => !v.id);
         if (sinId.length > 0) {
             status.className = 'inbox-status error';
@@ -1291,12 +1463,10 @@ function setupImportPanel() {
             const file = await ghReadFile('data.json');
             const existing = file.parsed;
 
-            // Fusionar: las nuevas reemplazan a las existentes con mismo id, las nuevas se añaden,
-            // y las marcadas en _eliminar se borran (p. ej. viviendas ya no disponibles en Idealista)
+            // Fusionar: las nuevas reemplazan a las existentes con mismo id, las nuevas se añaden
             const map = new Map(existing.viviendas.map(v => [v.id, v]));
             let added = 0;
             let updated = 0;
-            let removed = 0;
             for (const v of nuevasViviendas) {
                 if (map.has(v.id)) {
                     updated++;
@@ -1305,18 +1475,12 @@ function setupImportPanel() {
                 }
                 map.set(v.id, v);
             }
-            for (const id of idsEliminar) {
-                if (map.has(id)) {
-                    map.delete(id);
-                    removed++;
-                }
-            }
             existing.viviendas = [...map.values()];
             existing.meta = existing.meta || {};
             existing.meta.lastUpdated = new Date().toISOString().split('T')[0];
 
-            // Eliminar de pendientes los IDs que acaban de entrar o que se han borrado
-            const idsImportados = new Set([...nuevasViviendas.map(v => v.id), ...idsEliminar]);
+            // Eliminar de pendientes los IDs que acaban de entrar
+            const idsImportados = new Set(nuevasViviendas.map(v => v.id));
             const pendientesActuales = localData.getPendientes();
             const pendientesNuevos = pendientesActuales.filter(url => {
                 const m = url.match(/inmueble\/(\d+)/);
@@ -1327,14 +1491,10 @@ function setupImportPanel() {
             status.textContent = 'Subiendo cambios al repo...';
 
             // Escribir
-            const partes = [];
-            if (added > 0) partes.push(`+${added} nueva${added > 1 ? 's' : ''}`);
-            if (updated > 0) partes.push(`${updated} actualizada${updated > 1 ? 's' : ''}`);
-            if (removed > 0) partes.push(`-${removed} eliminada${removed > 1 ? 's' : ''}`);
-            const message = `Dashboard: ${partes.join(', ')}`;
+            const message = `Dashboard: ${added > 0 ? `+${added} nueva${added > 1 ? 's' : ''}` : ''}${added > 0 && updated > 0 ? ', ' : ''}${updated > 0 ? `${updated} actualizada${updated > 1 ? 's' : ''}` : ''}`;
             await ghWriteFile('data.json', JSON.stringify(existing, null, 2), file.sha, message);
 
-            const summary = partes.join(', ') || 'sin cambios';
+            const summary = `${added > 0 ? `${added} añadida${added > 1 ? 's' : ''}` : ''}${added > 0 && updated > 0 ? ', ' : ''}${updated > 0 ? `${updated} actualizada${updated > 1 ? 's' : ''}` : ''}`;
             status.className = 'inbox-status success';
             status.textContent = `✓ ${summary}. Vercel redespliega en ~30s. Refresca esta página después.`;
             textarea.value = '';
@@ -1598,42 +1758,62 @@ function renderCalcResults(c) {
 }
 
 function setupCalculadora() {
-    // Pre-rellenar con valores por defecto según ciudad activa
-    prefillCalcFromCity();
-
-    // Recálculo en tiempo real al cambiar cualquier input
+    // Recálculo en tiempo real al cambiar cualquier input (ambos paneles)
     const allInputs = document.querySelectorAll('#view-calculadora input, #view-calculadora select');
-    const debounced = debounce(() => {
-        const inputs = getCalcInputs();
-        const result = calcularRentabilidad(inputs);
-        renderCalcResults(result);
-    }, 150);
-
+    const debounced = debounce(recalcCalculadora, 150);
     allInputs.forEach(el => {
         el.addEventListener('input', debounced);
         el.addEventListener('change', debounced);
     });
 
-    // Botón limpiar
-    document.getElementById('btn-calc-clear').addEventListener('click', () => {
-        if (!confirm('¿Limpiar todos los campos de la calculadora?')) return;
-        allInputs.forEach(el => {
-            if (el.tagName === 'SELECT') {
-                el.selectedIndex = 0;
-            } else {
-                el.value = '';
-            }
-        });
-        prefillCalcFromCity();
-        renderCalcResults(null);
-        toast('Calculadora limpiada', 'success');
-    });
+    // Botones limpiar
+    document.getElementById('btn-calc-clear').addEventListener('click', () => clearCalcPanel('larga'));
+    const bvc = document.getElementById('btn-calcv-clear');
+    if (bvc) bvc.addEventListener('click', () => clearCalcPanel('vacacional'));
 
-    // Botón guardar como vivienda
+    // Botones guardar como vivienda
     document.getElementById('btn-calc-save').addEventListener('click', saveCalcAsVivienda);
+    const bvs = document.getElementById('btn-calcv-save');
+    if (bvs) bvs.addEventListener('click', saveCalcVacAsVivienda);
 
-    // Render inicial
-    renderCalcResults(null);
+    // Render inicial (muestra el panel correcto según la ciudad activa)
+    renderCalculadora();
+}
+
+// Muestra el panel correcto (larga / vacacional), ajusta el subtítulo y recalcula
+function renderCalculadora() {
+    const vac = cityModo() === 'vacacional';
+    const larga = document.getElementById('calc-larga');
+    const cv = document.getElementById('calc-vacacional');
+    if (larga) larga.hidden = vac;
+    if (cv) cv.hidden = !vac;
+    const sub = document.querySelector('#view-calculadora .view-sub');
+    if (sub) sub.textContent = vac
+        ? 'Modo vacacional · ingresos por ADR × ocupación. IRPF sin reducción del 60%.'
+        : 'Analiza cualquier vivienda en tiempo real. Los resultados se actualizan al teclear.';
+    prefillCalc();
+    recalcCalculadora();
+}
+
+// Recalcula según el modo de la ciudad activa
+function recalcCalculadora() {
+    if (cityModo() === 'vacacional') {
+        renderCalcResultsVac(calcularVacacional(getCalcInputsVac()));
+    } else {
+        renderCalcResults(calcularRentabilidad(getCalcInputs()));
+    }
+}
+
+function clearCalcPanel(mode) {
+    if (!confirm('¿Limpiar todos los campos de la calculadora?')) return;
+    const sel = mode === 'vacacional' ? '#calc-vacacional' : '#calc-larga';
+    document.querySelectorAll(`${sel} input, ${sel} select`).forEach(el => {
+        if (el.tagName === 'SELECT') el.selectedIndex = 0;
+        else el.value = '';
+    });
+    prefillCalc();
+    recalcCalculadora();
+    toast('Calculadora limpiada', 'success');
 }
 
 function debounce(fn, wait) {
@@ -1644,14 +1824,271 @@ function debounce(fn, wait) {
     };
 }
 
-function prefillCalcFromCity() {
+function prefillCalc() {
     const ciudad = getActiveCity();
     if (!ciudad) return;
-    // Pre-rellenar localidad e ITP
-    const locInput = document.getElementById('c-localidad');
-    if (locInput && !locInput.value) locInput.value = ciudad.nombre;
-    const itpInput = document.getElementById('c-itp');
-    if (itpInput && ciudad.itp !== undefined) itpInput.value = (ciudad.itp * 100).toFixed(1);
+    if (cityModo() === 'vacacional') {
+        const loc = document.getElementById('cv-localidad');
+        if (loc && !loc.value) loc.value = (ciudad.nombre || '').replace(' (costa)', '');
+        const itp = document.getElementById('cv-itp');
+        if (itp && ciudad.itp !== undefined) itp.value = (ciudad.itp * 100).toFixed(1);
+    } else {
+        const loc = document.getElementById('c-localidad');
+        if (loc && !loc.value) loc.value = ciudad.nombre;
+        const itp = document.getElementById('c-itp');
+        if (itp && ciudad.itp !== undefined) itp.value = (ciudad.itp * 100).toFixed(1);
+    }
+}
+
+// ---- CALCULADORA · MODO VACACIONAL ----
+function getCalcInputsVac() {
+    const num = (id, def = 0) => {
+        const el = document.getElementById(id);
+        if (!el) return def;
+        const v = parseFloat(el.value);
+        return isNaN(v) ? def : v;
+    };
+    const str = (id, def = '') => {
+        const el = document.getElementById(id);
+        return el ? (el.value || def) : def;
+    };
+    return {
+        localidad: str('cv-localidad'), zona: str('cv-zona'), url: str('cv-url'),
+        tipo: str('cv-tipo', 'Casa'), ano: num('cv-ano', null), hab: num('cv-hab'), banos: num('cv-banos'),
+        playaMin: num('cv-playa', null),
+        precio: num('cv-precio'), m2c: num('cv-m2c'), m2u: num('cv-m2u'), reforma: num('cv-reforma'),
+        fin: num('cv-fin', 70) / 100, tipoInteres: num('cv-tipo-interes', 3) / 100, plazo: num('cv-plazo', 25), itp: num('cv-itp', 9) / 100,
+        notaria: num('cv-notaria'), tasacion: num('cv-tasacion'), gestoria: num('cv-gestoria'), agencia: num('cv-agencia'),
+        mobiliario: num('cv-mobiliario'), otros: num('cv-otros'),
+        adr: num('cv-adr'), ocupacion: num('cv-ocupacion') / 100, gestion: num('cv-gestion', 20) / 100,
+        limpieza: num('cv-limpieza'), suministros: num('cv-suministros'), ibi: num('cv-ibi'), seguro: num('cv-seguro'),
+        comunidad: num('cv-comunidad'), mantenimiento: num('cv-mantenimiento', 10) / 100, tasa: num('cv-tasa'),
+        inflacion: num('cv-inflacion', 2) / 100, irpf: num('cv-irpf', 30) / 100,
+        vcSuelo: num('cv-vc-suelo', null), vcConst: num('cv-vc-const', null),
+    };
+}
+
+function calcularVacacional(i) {
+    if (!i.precio || !i.m2c || !i.adr || !i.ocupacion) return null;
+
+    const impuestos = i.precio * i.itp;
+    const costeTotal = i.precio + impuestos + i.reforma + i.notaria + i.tasacion + i.gestoria + i.agencia + i.mobiliario + i.otros;
+    const importeHip = i.precio * i.fin;
+    const capitalPropio = costeTotal - importeHip;
+
+    const r = i.tipoInteres / 12;
+    const n = i.plazo * 12;
+    let cuotaMensual = 0;
+    if (importeHip > 0 && r > 0) cuotaMensual = importeHip * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    else if (importeHip > 0) cuotaMensual = importeHip / n;
+    const cuotaAnual = cuotaMensual * 12;
+
+    let saldo = importeHip, totalInt = 0, totalAmort = 0;
+    for (let m = 0; m < 12; m++) {
+        const interes = saldo * r;
+        const amort = cuotaMensual - interes;
+        totalInt += interes; totalAmort += amort; saldo -= amort;
+    }
+
+    // Ingresos vacacionales
+    const noches = Math.round(365 * i.ocupacion);
+    const ingresoBruto = i.adr * noches;
+    const gestion = ingresoBruto * i.gestion;
+    const mantenimiento = ingresoBruto * i.mantenimiento;
+    const gastosAnuales = gestion + mantenimiento + i.limpieza + i.suministros + i.ibi + i.seguro + (i.comunidad * 12) + i.tasa;
+    const beneficioSinImp = ingresoBruto - gastosAnuales;
+
+    // IRPF: rendimiento de capital inmobiliario SIN reducción del 60%
+    const vcSuelo = i.vcSuelo ?? (i.precio * 0.375);
+    const vcConst = i.vcConst ?? (i.precio * 0.125);
+    const ratioConstr = (vcSuelo + vcConst) > 0 ? vcConst / (vcSuelo + vcConst) : 0.25;
+    const amortVivienda = 0.03 * ratioConstr * i.precio + 0.03 * (impuestos + i.reforma + i.agencia + i.notaria);
+    const irpfAnual = i.irpf * Math.max(0, beneficioSinImp - amortVivienda - totalInt);
+
+    const beneficioNeto = beneficioSinImp - irpfAnual;
+    const cashflowAnual = beneficioNeto - cuotaAnual;
+
+    const rentFlujo = capitalPropio > 0 ? cashflowAnual / capitalPropio : 0;
+    const rentDeuda = capitalPropio > 0 ? totalAmort / capitalPropio : 0;
+    const rentInflacion = capitalPropio > 0 ? i.precio * i.inflacion / capitalPropio : 0;
+    const rentTotal = rentFlujo + rentDeuda + rentInflacion;
+    const rentBruta = costeTotal > 0 ? ingresoBruto / costeTotal : 0;
+    const rentNeta = costeTotal > 0 ? beneficioNeto / costeTotal : 0;
+
+    const ingresoMensual = ingresoBruto / 12;
+    const adrEfectivo = noches > 0 ? ingresoBruto / noches : 0;
+    const multiplo = ingresoMensual > 0 ? costeTotal / ingresoMensual : 0;
+
+    const em2 = i.m2c > 0 ? i.precio / i.m2c : 0;
+    const ciudad = getActiveCity();
+    const cri = ciudad?.benchmarks?.criterios || {};
+    const razones = [];
+    if (em2 && cri.em2Riesgo && em2 > cri.em2Riesgo) razones.push(`€/m²=${Math.round(em2)} riesgo`);
+    else if (em2 && cri.em2Aceptable && em2 > cri.em2Aceptable) razones.push(`€/m²=${Math.round(em2)} >${cri.em2Aceptable}`);
+    if (cri.precioAbsolutoMax && i.precio > cri.precioAbsolutoMax) razones.push(`precio >${fmt.int(cri.precioAbsolutoMax)}€`);
+    if (i.playaMin != null && cri.distanciaPlayaMaxMin && i.playaMin > cri.distanciaPlayaMaxMin) razones.push(`playa ${i.playaMin}min >${cri.distanciaPlayaMaxMin}`);
+    // La zona/municipio NO es filtro: cualquier pueblo a <=30 min de playa es válido.
+
+    // Regla financiera: aceptable hasta cashflow -1.000 €/año (la hipoteca casi se paga sola)
+    const cashflowMin = (cri.cashflowMinAnual != null) ? cri.cashflowMinAnual : -1000;
+    const cashflowFalla = cashflowAnual < cashflowMin;
+    if (cashflowFalla) razones.push(`cashflow ${Math.round(cashflowAnual)}€/año (límite ${cashflowMin})`);
+
+    let verdict = 'pass';
+    const fuerte = cashflowFalla || razones.some(r => /riesgo|precio >/.test(r));
+    if (fuerte || razones.length >= 3) verdict = 'fail';
+    else if (razones.length > 0) verdict = 'warning';
+
+    // Calidad según el objetivo financiero de Borja
+    let calidad;
+    if (cashflowAnual >= 0) calidad = rentBruta >= 0.08 ? 'Buena · se paga sola' : 'Se paga sola';
+    else if (cashflowAnual >= cashflowMin) calidad = 'Correcta (cashflow dentro de -1.000€)';
+    else calidad = 'Fuera de objetivo (cashflow)';
+
+    return {
+        em2, costeTotal, capitalPropio, importeHip,
+        cuotaMensual, cuotaAnual, totalAmort, totalInt,
+        noches, ingresoBruto, gastosAnuales, beneficioSinImp,
+        amortVivienda, irpfAnual, beneficioNeto, cashflowAnual,
+        rentFlujo, rentDeuda, rentInflacion, rentTotal, rentBruta, rentNeta,
+        ingresoMensual, adrEfectivo, multiplo, calidad,
+        vsRA: ciudad?.benchmarks?.fuentes?.realAdvisor?.em2Mediano
+            ? (em2 / ciudad.benchmarks.fuentes.realAdvisor.em2Mediano) - 1 : null,
+        vsBYF: ciudad?.benchmarks?.fuentes?.bestYieldFinder?.em2Mediano
+            ? (em2 / ciudad.benchmarks.fuentes.bestYieldFinder.em2Mediano) - 1 : null,
+        razones, verdict, vcSuelo, vcConst, impuestos,
+        adr: i.adr, ocupacion: i.ocupacion,
+    };
+}
+
+function renderCalcResultsVac(c) {
+    const set = (id, val, cls = '') => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = val;
+        el.className = cls;
+    };
+    const banner = document.getElementById('cv-verdict-banner');
+    const icon = document.getElementById('cv-verdict-icon');
+    const label = document.getElementById('cv-verdict-label');
+
+    if (!c) {
+        if (banner) banner.className = 'calc-verdict-banner';
+        if (icon) icon.textContent = '—';
+        if (label) label.textContent = 'Rellena precio, m², ADR y ocupación';
+        ['rv-coste-total','rv-capital','rv-em2','rv-cuota','rv-amort','rv-int','rv-noches',
+         'rv-ingresos','rv-gastos','rv-irpf','rv-beneficio','rv-cashflow','rv-bruta','rv-neta',
+         'rv-flujo','rv-deuda','rv-inflacion','rv-total','rv-ing-mes','rv-adr-efectivo','rv-multiplo']
+            .forEach(id => set(id, '—'));
+        set('rv-vut', 'Verificar');
+        return;
+    }
+
+    const txt = c.verdict === 'pass' ? '✓ Encaja' : c.verdict === 'warning' ? '~ Con matices' : '✗ Descartar';
+    if (banner) banner.className = `calc-verdict-banner ${c.verdict}`;
+    if (icon) icon.textContent = c.verdict === 'pass' ? '✓' : c.verdict === 'warning' ? '~' : '✗';
+    if (label) label.textContent = c.razones.length > 0 ? `${txt} · ${c.razones.join(' · ')}` : txt;
+
+    set('rv-coste-total', fmt.eur(c.costeTotal));
+    set('rv-capital', fmt.eur(c.capitalPropio));
+    set('rv-em2', fmt.em2(c.em2));
+    set('rv-cuota', fmt.eurDec(c.cuotaMensual));
+    set('rv-amort', fmt.eur(c.totalAmort));
+    set('rv-int', fmt.eur(c.totalInt));
+    set('rv-noches', `${c.noches} noches`);
+    set('rv-ingresos', fmt.eur(c.ingresoBruto));
+    set('rv-gastos', fmt.eur(-c.gastosAnuales), 'neg');
+    set('rv-irpf', fmt.eur(-c.irpfAnual), c.irpfAnual > 0 ? 'neg' : '');
+    set('rv-beneficio', fmt.eur(c.beneficioNeto));
+    set('rv-cashflow', fmt.eur(c.cashflowAnual), c.cashflowAnual >= 0 ? 'pos' : 'neg');
+    set('rv-bruta', fmt.pctNoSign(c.rentBruta));
+    set('rv-neta', fmt.pctNoSign(c.rentNeta));
+    set('rv-flujo', fmt.pct(c.rentFlujo), c.rentFlujo >= 0 ? 'pos' : 'neg');
+    set('rv-deuda', fmt.pct(c.rentDeuda), 'pos');
+    set('rv-inflacion', fmt.pct(c.rentInflacion), 'pos');
+    set('rv-total', fmt.pct(c.rentTotal), c.rentTotal >= 0 ? 'pos' : 'neg');
+    set('rv-ing-mes', fmt.eur(c.ingresoMensual) + '/mes');
+    set('rv-adr-efectivo', fmt.eur(c.adrEfectivo) + '/noche');
+    set('rv-multiplo', isFinite(c.multiplo) && c.multiplo > 0 ? Math.round(c.multiplo).toString() : '—');
+    set('rv-vut', 'Verificar ayto.');
+}
+
+async function saveCalcVacAsVivienda() {
+    const inputs = getCalcInputsVac();
+    const c = calcularVacacional(inputs);
+    if (!c) { toast('Rellena precio, m², ADR y ocupación', 'error'); return; }
+    if (!ghConfig.isConfigured()) { toast('Configura GitHub primero', 'error'); switchView('config'); return; }
+
+    let id;
+    const urlMatch = (inputs.url || '').match(/inmueble\/(\d+)/);
+    id = urlMatch ? urlMatch[1] : ('manual-' + Date.now());
+    const ciudad = getActiveCity();
+
+    const vivienda = {
+        id, url: inputs.url || '', fechaAnalisis: new Date().toISOString().split('T')[0],
+        localidad: inputs.localidad || (ciudad ? ciudad.nombre : ''), zona: inputs.zona || '',
+        direccion: inputs.zona || '', tipo: inputs.tipo,
+        titulo: `${inputs.tipo} ${inputs.hab ? '(' + inputs.hab + ' hab) ' : ''}${inputs.zona ? 'en ' + inputs.zona : ''}`.trim() || `${inputs.tipo} ${id}`,
+        ciudadSlug: state.activeCity, modo: 'vacacional',
+        datos: {
+            precio: inputs.precio, m2Construidos: inputs.m2c, m2Utiles: inputs.m2u || inputs.m2c,
+            habitaciones: inputs.hab, banos: inputs.banos, planta: '', ano: inputs.ano,
+            estado: '', calefaccion: '', aireAcondicionado: false, ascensor: false,
+            terraza: false, garaje: false, comunidadMes: inputs.comunidad, bajadaPrecio: null, agencia: '',
+        },
+        estimaciones: {
+            alquilerMensual: Math.round(c.ingresoMensual),
+            alquilerNotas: `Vacacional: ADR ${fmt.int(inputs.adr)}€ × ${Math.round(inputs.ocupacion * 100)}% ocupación (${c.noches} noches). Ingreso bruto anual ${fmt.int(c.ingresoBruto)}€.`,
+            ibi: inputs.ibi, vcSuelo: Math.round(c.vcSuelo), vcConstruccion: Math.round(c.vcConst),
+            vacancia: Math.round((1 - inputs.ocupacion) * 10000) / 10000, mantenimiento: inputs.mantenimiento,
+            adr: inputs.adr, ocupacion: inputs.ocupacion, minutosPlaya: inputs.playaMin,
+        },
+        calculo: {
+            costeTotal: Math.round(c.costeTotal), capitalPropio: Math.round(c.capitalPropio),
+            cuotaMensual: Math.round(c.cuotaMensual * 100) / 100, cuotaAnual: Math.round(c.cuotaAnual * 100) / 100,
+            amortizacionAno1: Math.round(c.totalAmort * 100) / 100, interesesAno1: Math.round(c.totalInt * 100) / 100,
+            ingresosAnuales: Math.round(c.ingresoBruto), gastosAnuales: Math.round(c.gastosAnuales),
+            irpfAnual: Math.round(c.irpfAnual * 100) / 100, beneficioNeto: Math.round(c.beneficioNeto * 100) / 100,
+            cashflowAnual: Math.round(c.cashflowAnual * 100) / 100,
+            rentabilidadBruta: Math.round(c.rentBruta * 10000) / 10000, rentabilidadNeta: Math.round(c.rentNeta * 10000) / 10000,
+            rentabilidadFlujoCaja: Math.round(c.rentFlujo * 10000) / 10000, rentabilidadPagoDeuda: Math.round(c.rentDeuda * 10000) / 10000,
+            rentabilidadInflacion: Math.round(c.rentInflacion * 10000) / 10000, rentabilidadTotal: Math.round(c.rentTotal * 10000) / 10000,
+            roce: Math.round(c.rentFlujo * 10000) / 10000, multiplo: Math.round(c.multiplo),
+            calidadInversion: c.calidad, minimoAlquiler: 0, margenSeguridadMensual: 0, margenSeguridadPct: null,
+        },
+        filtros: {
+            vsRA: c.vsRA != null ? Math.round(c.vsRA * 10000) / 10000 : null,
+            vsBYF: c.vsBYF != null ? Math.round(c.vsBYF * 10000) / 10000 : null,
+            verdict: c.verdict, verdictRazones: c.razones,
+            verdictTexto: c.razones.length > 0 ? c.razones.join(', ') : 'Encaja',
+        },
+        notas: 'Análisis vacacional introducido desde la calculadora. Confirmar viabilidad VUT con el ayuntamiento.',
+    };
+
+    const btn = document.getElementById('btn-calcv-save');
+    btn.classList.add('btn-loading');
+    try {
+        const file = await ghReadFile('data.json');
+        const existing = file.parsed;
+        const map = new Map(existing.viviendas.map(v => [v.id, v]));
+        const existed = map.has(vivienda.id);
+        map.set(vivienda.id, vivienda);
+        existing.viviendas = [...map.values()];
+        existing.meta = existing.meta || {};
+        existing.meta.lastUpdated = new Date().toISOString().split('T')[0];
+        await ghWriteFile('data.json', JSON.stringify(existing, null, 2), file.sha,
+            existed ? `Calculadora vac.: actualizar ${vivienda.id}` : `Calculadora vac.: añadir ${vivienda.id}`);
+        toast(existed ? 'Vivienda actualizada en GitHub' : 'Vivienda guardada en GitHub', 'success');
+        setTimeout(() => location.reload(), 2000);
+    } catch (err) {
+        console.error(err);
+        let msg = err.message;
+        if (msg.includes('401')) msg = 'Token inválido o caducado. Revisa la configuración.';
+        else if (msg.includes('404')) msg = 'data.json no encontrado en el repo.';
+        toast(`Error: ${msg}`, 'error');
+    } finally {
+        btn.classList.remove('btn-loading');
+    }
 }
 
 async function saveCalcAsVivienda() {
